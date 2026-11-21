@@ -1,15 +1,18 @@
 # M02 – Data model
 
-≈ 12h · 10 work items · Starts after: [M01 – Org and repo](../M01-org-and-repo/README.md)
+≈ 13h · 11 work items · Starts after: [M01 – Org and repo](../M01-org-and-repo/README.md)
 
 **Goal:** Every object and field in BRD §10 exists, with record types, layouts, the LAMS app and seed data for the four products.
 
 **Exit criteria:** seed data loads; AC-09 EMI checks by hand on a record (₹8,979).
 
+**Order inside this milestone:** LAMS-094 first (Account record types and Contact sharing come before any Account data), then LAMS-007 onwards.
+
 ## Work items
 
 Tick items here; the linked file says what to build.
 
+- [ ] [LAMS-094](094-account-record-types-individual-and-business-borrower.md) · Account record types Individual Borrower and Business Borrower (no Person Accounts) · `S`
 - [ ] [LAMS-007](007-loan-product-c-product-document-c.md) · Loan_Product__c + Product_Document__c · `M`
 - [ ] [LAMS-008](008-contact-custom-fields-pan-duplicate-rule.md) · Contact custom fields + PAN Duplicate Rule · `S`
 - [ ] [LAMS-009](009-loan-application-c-fields-4-record-types.md) · Loan_Application__c fields, 4 record types, picklists · `L`

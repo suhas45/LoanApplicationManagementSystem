@@ -2,15 +2,15 @@
 
 **Milestone:** [M02 – Data model](README.md) · **Size:** S (≤ 2h) · **Delivers:** BR-02
 
-**Depends on:** M01 done. Independent of LAMS-007.
+**Depends on:** M01 done; LAMS-094 (Account record types Individual Borrower and Business Borrower). Independent of LAMS-007.
 
 ## Goal
 
-The standard Contact becomes the borrower record, identified by PAN: one record per PAN, with a second one blocked by both a unique field and a friendly duplicate message (BR-02). The income, existing-EMI, KYC and language fields are what eligibility (BR-10, BR-11) and notifications (BR-54) read later.
+The standard Contact becomes the borrower record, identified by PAN: one record per PAN, with a second one blocked by both a unique field and a friendly duplicate message (BR-02). The same fields serve both borrower shapes (LAMS-094): an individual borrower is one Contact under their own Individual Borrower Account, and a Small-Business director is a Contact under the Business Borrower Account (§10.1). The income, existing-EMI, KYC and language fields are what eligibility (BR-10, BR-11) and notifications (BR-54) read later.
 
 ## Build
 
-**Contact fields** (Birthdate is the standard field, used for age at maturity; nothing to build)
+**Contact fields** (Birthdate is the standard field, used for age at maturity; nothing to build). Nothing is created on Account: the borrower data lives on the Contact.
 
 | Field (API name) | Type | Details |
 | --- | --- | --- |
@@ -34,7 +34,7 @@ Picklist value API names equal their labels (for example `Self-Employed`), here 
 
 | Setting | Value |
 | --- | --- |
-| Record-level security | *Bypass sharing rules* (Contact OWD becomes Private in LAMS-026; the check must still find contacts the user cannot see) |
+| Record-level security | *Bypass sharing rules* (Contact becomes Controlled by Parent and Account stays Private in LAMS-026; the check must still find borrowers the user cannot see) |
 | Action on create | Block |
 | Action on edit | Block |
 | Alert text | "A borrower with this PAN already exists. Search for the existing borrower instead of creating a new one." |
@@ -42,7 +42,7 @@ Picklist value API names equal their labels (for example `Self-Employed`), here 
 | Conditions | None |
 | Active | Yes |
 
-The org's *Standard Contact Duplicate Rule* (name and email) stays as it is.
+Both borrower shapes keep the PAN on a Contact, so this one rule (and the Unique index) covers individuals and directors. The org's *Standard Contact Duplicate Rule* (name and email) stays as it is.
 
 ## Steps
 
@@ -58,7 +58,7 @@ The org's *Standard Contact Duplicate Rule* (name and email) stays as it is.
 
 - **Two layers for uniqueness:** the Unique field is the hard guarantee (also for API loads and Apex), while the duplicate rule gives a readable message in the UI before the database error appears.
 - **Duplicate rules need an active matching rule.** Deploying both to a fresh org in one go can fail because matching-rule activation is asynchronous; deploy the matching rule first, then the duplicate rule.
-- **Bypass vs enforce sharing** in a duplicate rule decides whether a user is warned about records they cannot see. With Private contacts, *enforce* would let duplicates through.
+- **Bypass vs enforce sharing** in a duplicate rule decides whether a user is warned about records they cannot see. With Private accounts (and contacts controlled by them), *enforce* would let duplicates through.
 - `REGEX()` must match the whole value, so no `^…$` anchors are needed.
 
 ## Done when
@@ -72,4 +72,4 @@ The org's *Standard Contact Duplicate Rule* (name and email) stays as it is.
 
 ## References
 
-- [BRD](../../BRD/LAMS_BRD.md): §10.1 Contact (borrower); §11 OWD (Contact Private); §21 Duplicate rules; BR-02, BR-10, BR-11, BR-54, BR-78
+- [BRD](../../BRD/LAMS_BRD.md): §10.1 Borrower (Contact fields; Individual Borrower and Business Borrower Accounts); §11 OWD (Contact Controlled by Parent, Account Private); §21 Duplicate rules; BR-02, BR-10, BR-11, BR-54, BR-78

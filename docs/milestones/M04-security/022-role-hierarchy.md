@@ -17,8 +17,9 @@ Four roles mirror the lender's reporting lines: Credit Head → Credit Manager �
 | Loan Officer | Loan_Officer | Credit_Manager | Own records only |
 | Operations Officer | Operations_Officer | Credit_Head | Own records only |
 
-- Leave the role access settings for Account, Contact, Case and Opportunity at their defaults ("can't access" / "view only" where offered). Access to LAMS data comes from OWDs, sharing and permission sets, not from these options.
+- Leave the role access settings for Account, Case and Opportunity at their defaults ("can't access" / "view only" where offered). Contact has no role option: Contact sharing is Controlled by Parent (LAMS-026), so Contact access follows the Account. Access to LAMS data comes from OWDs, sharing and permission sets, not from these options.
 - Keep **Grant Access Using Hierarchies** on for every LAMS custom object. It is on by default. Don't untick it in LAMS-026.
+- In the `Lams` org the **Credit Head role is held by the System Administrator** (the developer), because only 2 full licences are free (LAMS-029). Give your admin user the Credit_Head role once it exists.
 - Portal borrowers get no internal role. Customer Community Login users have no role hierarchy, and their access comes from the sharing set (LAMS-077).
 - One team is enough for the demo (§19: 1 Credit Manager). If a second Credit Manager is added, give each team its own pair of roles (for example `Credit_Manager_North` → `Loan_Officer_North`). Otherwise both managers see both teams, which breaks BR-62 "their own team" (proposed).
 
@@ -33,7 +34,7 @@ Four roles mirror the lender's reporting lines: Credit Head → Credit Manager �
 
 - **Roles open records upward:** a manager gets the same access as their subordinates to records those subordinates own *or have been shared*. That includes Apex managed shares on Loan__c (LAMS-054), so the Credit Head also sees Operations' loans.
 - **Roles are not permissions.** A role decides which *records* a user sees. Profiles and permission sets decide which *objects and fields*.
-- **Gotcha for the portal (M10):** the owner of a portal borrower's Account must have a role, or the portal user can't be created. Have a Loan Officer own the borrower Accounts in seed data or self-registration.
+- **Gotcha for the portal (M10):** the owner of a portal borrower's Account (their Individual Borrower Account, or the business Account of a director) must have a role, or the portal user can't be created. Have a Loan Officer own the borrower Accounts in seed data or self-registration.
 - Deploying roles is safe, but deleting a role that users hold fails. Reassign the users first.
 
 ## Done when

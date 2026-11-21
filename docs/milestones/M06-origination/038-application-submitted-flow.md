@@ -23,8 +23,10 @@ At submission the rate is fixed (BR-09), the dates are stamped, portal and partn
 | 7 | Action *Publish Loan Event* (LoanEventPublisher) | eventType `Application Submitted`, recordId `{!$Record.Id}`, amount `{!$Record.Amount__c}` |
 | 8 | Action *Request Credit Score* | Added in LAMS-041 (enqueues CreditBureauService) |
 | 9 | Submitted email | Added in LAMS-047 |
+| 10a | *Campaign from membership* (BR-88, AC-18, proposed) | Added in **LAMS-099**, before element 10. When `{!$Record.Campaign__c}` is blank, it takes the borrower's most recent non-Applied membership of an **active** campaign and sets Campaign__c from it, so a pre-approved borrower's portal or branch application carries the campaign. Element 10 then uses `varCampaignId` = `BLANKVALUE($Record.Campaign__c, <found campaign>)`. Leave it out until then |
+| 10 | *Campaign Applied* (BR-88, v2.2) | Added when **LAMS-099** is built (M14), because it needs `Loan_Application__c.Campaign__c`, which LAMS-099 creates. Decision `{!$Record.Campaign__c}` is not blank → Get Records CampaignMember where CampaignId = `{!$Record.Campaign__c}` and ContactId = `{!$Record.Borrower__c}` (the individual's Contact, or the director) → Update Records Status = Applied. If no member exists, create one with Status Applied (proposed). Leave it out until then |
 
-**Errors:** leave elements 2, 5 and 6 without fault connectors on purpose. An unhandled fault rolls back the whole save, so the user's Submit fails with the message instead of leaving a half-submitted record; the platform's flow error email reaches the admin.
+**Errors:** leave elements 2, 5 and 6 without fault connectors on purpose. An unhandled fault rolls back the whole save, so the user's Submit fails with the message instead of leaving a half-submitted record; the platform's flow error email reaches the admin. Elements **10a and 10 are the exception, by design** (LAMS-099): each has a fault connector to the end, because campaign bookkeeping (for example a campaign without an *Applied* member status) must never roll back a submission.
 
 **Rules this must respect**
 
@@ -49,6 +51,7 @@ At submission the rate is fixed (BR-09), the dates are stamped, portal and partn
 - **"Only when updated to meet the condition"** stops re-entry when the flow updates its own record.
 - **Flow bulkification:** with 200 records the platform batches the Create Records and Apex action across interviews — but only if DML stays outside loops.
 - **Owner change and sharing:** changing OwnerId drops the old owner's implicit access; portal users keep theirs through the sharing set, managers gain it through the role hierarchy (AC-06).
+- **Campaign members after conversion:** when a lead converts, its CampaignMember rows get the new ContactId, so element 10 finds the member by Borrower__c even though the borrower started as a lead.
 
 ## Done when
 
@@ -63,4 +66,4 @@ At submission the rate is fixed (BR-09), the dates are stamped, portal and partn
 
 ## References
 
-- [BRD](../../BRD/LAMS_BRD.md): BR-07, BR-08, BR-09, BR-16, BR-68, BR-70, §5 statuses, §11 Owner assignment and sharing, §13.2 Application Submitted, §14 corrected origination chain, AC-06
+- [BRD](../../BRD/LAMS_BRD.md): BR-07, BR-08, BR-09, BR-16, BR-68, BR-70, BR-88, §5 statuses, §11 Owner assignment and sharing, §13.2 Application Submitted, §13.6 Campaign Applied, §14 corrected origination chain, AC-06, AC-18

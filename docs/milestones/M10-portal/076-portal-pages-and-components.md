@@ -25,6 +25,7 @@ Build the six portal pages of BR-60 so a borrower can apply, upload documents, a
 | Service Requests (`/service-requests`) | Record List on Case, list view *My Service Requests* (proposed); **Create Case Form** using global action *New Service Request* (proposed) | Action fields: Loan__c, Request_Type__c, Subject, Description; record type Loan Service Request; Origin = Portal (predefined) |
 | Case detail (standard) | Case Detail, Case Feed / comments | Borrower can add comments |
 | Assistant (`/assistant`) | Placeholder text label `LAMS_Portal_Assistant_Coming` (proposed) | Borrower Assistant is embedded in LAMS-087 |
+| Request a Callback (`/request-callback`), **built in LAMS-097** (M14), not in the menu | Rich-text intro; **callbackRequest** (guest EMI calculator and callback form) | The only page with Page Access *Public*; reached from a link on the Login page. Listed here so the page set is complete; nothing to build in this item |
 
 **Portal page layouts** (assigned to profile LAMS Borrower) hide internal fields: Credit_Score__c, Credit_Score_Source__c, Override_Reason__c, Risk_Grade__c, Eligibility_Notes__c, Decision_Comments__c, AI_Summary__c, Assigned_Officer__c (proposed list). Field access itself is controlled by `LAMS_Borrower_Portal` FLS.
 

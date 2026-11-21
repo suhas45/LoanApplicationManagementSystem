@@ -26,7 +26,7 @@ Partners, the payment gateway and the legacy system call LAMS as one API-only id
 | --- | --- |
 | Apex Class Access: `LoanApplicationApi`, `PaymentCallbackApi`, `LoanStatusWebService` | Without it the endpoints return 403 / `INSUFFICIENT_ACCESS`. Add each class as it is built |
 | Read on `Loan_Product__c` (proposed) | Partner API resolves `productCode` |
-| Create/Read/Edit on `Account`, `Contact` (proposed) | Partner API upserts the borrower by PAN |
+| Create/Read/Edit on `Account`, `Contact` (proposed) | Partner API upserts the borrower by PAN; a new borrower is an Account plus a Contact, so Account create is needed. Also give the user the Individual Borrower and Business Borrower Account record types (in `LAMS_Integration`, proposed) |
 | Read on `Loan_Application__c` (proposed, with View All read or a narrow `without sharing` lookup) | GET status still works after the application is reassigned to a Loan Officer at submission |
 | External Credential principal access `Core_Banking` (proposed) | If the Integration User is the running user for the event triggers (LAMS-067) |
 

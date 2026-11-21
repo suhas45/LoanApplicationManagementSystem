@@ -49,6 +49,8 @@ The segments give a reviewable list (and could be activated to marketing later).
 
 The Contact links to the insight through Individual (Contact Id) → Unified Individual. If your release will not map a number to a checkbox, change Pre_Approved_Flag__c to a Boolean or text dimension the enrichment accepts. Failing that, set Pre_Approved__c from the Activation 2 flow (proposed fallback). Note the choice in the README. Give the Data Cloud integration user edit access to both Contact fields; make them read-only for everyone else. BR-71 does not list Repayment_Score__c, so decide whether Operations may see it and record the decision in the BRD.
 
+**Campaign link (v2.2):** when M14 is in, `Pre_Approved__c` becoming true also starts the Pre-approved Campaign Membership flow on Contact (LAMS-099, BR-88).
+
 **Activation 2: Data Action → Flow → Task (early risk)**
 
 | Piece | Value |
@@ -108,4 +110,4 @@ The flow runs as the Automated Process user (§8 C3). That is why it reads the o
 
 ## References
 
-- [BRD](../../BRD/LAMS_BRD.md): §6.15 BR-78, §17 Data Cloud table (Calculated insights, Segments, Activation, Agent grounding), §10.1 Repayment_Score__c and Pre_Approved__c, §10.5 Days_Past_Due__c and Assigned_Officer__c, §10.6 EMI_Instalment__c, §12 Data_Cloud_Enabled__c, §8 C3, C4, §20 step 12, BR-48, BR-49, BR-71
+- [BRD](../../BRD/LAMS_BRD.md): §6.15 BR-78, §17 Data Cloud table (Calculated insights, Segments, Activation, Agent grounding), §10.1 Repayment_Score__c and Pre_Approved__c, §13.6 Pre-approved Campaign Membership, §10.5 Days_Past_Due__c and Assigned_Officer__c, §10.6 EMI_Instalment__c, §12 Data_Cloud_Enabled__c, §8 C3, C4, §20 step 12, BR-48, BR-49, BR-71

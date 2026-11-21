@@ -35,8 +35,9 @@ One hierarchy custom setting holds every feature switch and business threshold, 
 | Refer_Score_Tolerance__c | Number(3,0) | 20 | Org | Score points below minimum that still give Refer (BR-12) |
 | Refer_Ratio_Tolerance__c | Percent(3,2) | 5 | Org | EMI-to-income or LTV points over the limit that still give Refer (BR-12) |
 | Approval_Reminder_Days__c | Number(2,0) | 2 | Org | Business days before an approver is reminded (BR-55) |
+| Callback_Rate_Limit__c | Number(2,0) | 3 | Org | Maximum portal callback requests per mobile number in 24 hours (BR-83; proposed, used by CallbackRequestController in LAMS-097) |
 
-That is 21 fields: 13 checkboxes and 8 thresholds. Make none of them required. Checkboxes can't be null. Thresholds can be blank until the script in LAMS-020 fills them.
+That is 22 fields: 13 checkboxes and 9 thresholds. Make none of them required. Checkboxes can't be null. Thresholds can be blank until the script in LAMS-020 fills them.
 
 The "Scope" column is a rule for how values are read and set, not a field property. Only `Agentforce_Enabled__c` may have profile- or user-level rows. Every other field is set at the org default only.
 
@@ -45,8 +46,8 @@ The "Scope" column is a rule for how values are read and set, not a field proper
 ## Steps
 
 1. Setup → Custom Settings → New: label *LAMS Settings*, object name `LAMS_Settings`, Hierarchy, Public.
-2. Add the 21 fields with the types and defaults above. Put the BR reference in each field's Description.
-3. Retrieve: `sf project retrieve start --metadata CustomObject:LAMS_Settings__c`. Check that `force-app/main/default/objects/LAMS_Settings__c/LAMS_Settings__c.object-meta.xml` contains `<customSettingsType>Hierarchy</customSettingsType>` and a `fields/` folder with 21 files.
+2. Add the 22 fields with the types and defaults above. Put the BR reference in each field's Description.
+3. Retrieve: `sf project retrieve start --metadata CustomObject:LAMS_Settings__c`. Check that `force-app/main/default/objects/LAMS_Settings__c/LAMS_Settings__c.object-meta.xml` contains `<customSettingsType>Hierarchy</customSettingsType>` and a `fields/` folder with 22 files.
 4. Check the deploy: `sf project deploy start --metadata CustomObject:LAMS_Settings__c --dry-run`.
 5. Commit: `feat(config): LAMS_Settings__c hierarchy custom setting [LAMS-017]`.
 
@@ -59,7 +60,7 @@ The "Scope" column is a rule for how values are read and set, not a field proper
 
 ## Done when
 
-- [ ] `LAMS_Settings__c` exists as a Hierarchy setting with exactly the 21 fields above, and the types and defaults match the table
+- [ ] `LAMS_Settings__c` exists as a Hierarchy setting with exactly the 22 fields above, and the types and defaults match the table
 - [ ] Setup → Custom Settings → LAMS Settings → Manage offers **New** at the org-default level and at the profile/user level
 - [ ] The object and fields are in `force-app/` and `sf project deploy start --dry-run` succeeds
 - [ ] Meets the [Definition of Done](../README.md#definition-of-done)

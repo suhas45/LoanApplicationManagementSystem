@@ -37,6 +37,7 @@
 | `referScoreTolerance()` | Integer | `Refer_Score_Tolerance__c` |
 | `referRatioTolerance()` | Decimal | `Refer_Ratio_Tolerance__c` |
 | `approvalReminderDays()` | Integer | `Approval_Reminder_Days__c` |
+| `callbackRateLimit()` | Integer | `Callback_Rate_Limit__c` (proposed; portal callback requests per mobile in 24 hours, read by CallbackRequestController in LAMS-097) |
 | `reset()` | void | Clears the cache. Call it after updating settings in the same transaction (LAMS-030, tests) |
 | `SettingsMissingException` | inner class | Thrown by threshold getters when the value is blank |
 

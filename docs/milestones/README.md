@@ -1,13 +1,13 @@
 # LAMS – Milestones and Work Items
 
-The build of the [BRD](../BRD/LAMS_BRD.md) is divided into 13 milestones and 93 work items (LAMS-001 – LAMS-093), about 150 hours. Do the milestones in order. This page is the index and the rulebook; each milestone folder holds its checklist and one file per work item.
+The build of the [BRD](../BRD/LAMS_BRD.md) is divided into 14 milestones and 100 work items (LAMS-001 – LAMS-100), about 165 hours. Do the milestones in the build order below; M14 was added later, so it is built right after M10. This page is the index and the rulebook; each milestone folder holds its checklist and one file per work item.
 
 ## Milestones
 
 | Milestone | Work items | Estimate | Exit criteria |
 | --- | --- | --- | --- |
 | [M01 – Org and repo](M01-org-and-repo/README.md) | 001 – 006 | ≈ 4h | A push to `main` passes CI |
-| [M02 – Data model](M02-data-model/README.md) | 007 – 016 | ≈ 12h | Seed data loads; AC-09 EMI checks by hand |
+| [M02 – Data model](M02-data-model/README.md) | 094, 007 – 016 | ≈ 13h | Seed data loads; AC-09 EMI checks by hand |
 | [M03 – Configuration](M03-configuration/README.md) | 017 – 021 | ≈ 6h | Toggles readable from Apex and Flow |
 | [M04 – Security](M04-security/README.md) | 022 – 030 | ≈ 10h | AC-14 |
 | [M05 – Validation rules](M05-validation-rules/README.md) | 031 – 033 | ≈ 4h | Every rule has a negative test |
@@ -16,6 +16,7 @@ The build of the [BRD](../BRD/LAMS_BRD.md) is divided into 13 milestones and 93 
 | [M08 – Servicing](M08-servicing/README.md) | 053 – 065 | ≈ 24h | AC-07, AC-08, AC-10, AC-11, AC-12 |
 | [M09 – Events and APIs](M09-events-and-apis/README.md) | 066 – 073 | ≈ 14h | Postman collection green; retry reaches Gave Up |
 | [M10 – Portal](M10-portal/README.md) | 074 – 079 | ≈ 12h | AC-13; borrower self-service works |
+| [M14 – Sales: leads and campaigns](M14-sales-leads-and-campaigns/README.md) | 095 – 100 | ≈ 16h | AC-17, AC-18 |
 | [M11 – Reports and dashboards](M11-reports-and-dashboards/README.md) | 080 – 083 | ≈ 5h | Dynamic dashboards differ per user |
 | [M12 – AI and Data Cloud](M12-ai-and-data-cloud/README.md) | 084 – 089 | ≈ 16h | AC-15; clean payer gets Pre_Approved__c |
 | [M13 – End to end and portfolio](M13-end-to-end-and-portfolio/README.md) | 090 – 093 | ≈ 8h | AC-16; coverage ≥ 90% |
@@ -58,7 +59,7 @@ Rules:
 - **One item in progress at a time.** Finish before starting the next.
 - Follow milestone order; inside a milestone, follow its "Order" note and each item's **Depends on**.
 - **Tests ship with the class** in the same work item, never later.
-- Bugs or ideas found mid-work go under **Parking lot** in that milestone's README. If you decide to do one, give it the next free number after 093 and add a work item file.
+- Bugs or ideas found mid-work go under **Parking lot** in that milestone's README. If you decide to do one, give it the next free number after 100 and add a work item file.
 - Sizes: `S` ≤ 2h · `M` 2–5h · `L` 5–10h. Anything bigger is split.
 
 ## Workflow per work item

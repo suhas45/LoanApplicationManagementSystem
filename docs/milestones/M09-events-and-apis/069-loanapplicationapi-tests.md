@@ -2,7 +2,7 @@
 
 **Milestone:** [M09 – Events and APIs](README.md) · **Size:** M (2–5h) · **Delivers:** BR-06
 
-**Depends on:** LAMS-068 (Integration User, token), LAMS-009 (Loan_Application__c, `External_Reference__c`, record types), LAMS-008 (Contact `PAN__c`), LAMS-019 (FeatureToggle), LAMS-031 (validation rules), LAMS-038 (Application Submitted flow, owner reassignment), LAMS-039 (IntegrationLogger)
+**Depends on:** LAMS-068 (Integration User, token), LAMS-009 (Loan_Application__c, `External_Reference__c`, record types), LAMS-008 (Contact `PAN__c`), LAMS-094 (Individual Borrower and Business Borrower record types), LAMS-019 (FeatureToggle), LAMS-031 (validation rules), LAMS-038 (Application Submitted flow, owner reassignment), LAMS-039 (IntegrationLogger)
 
 ## Goal
 
@@ -43,7 +43,7 @@ Both read `RestContext.request` and write `RestContext.response` (status code, J
 | partnerName | `Partner_Name__c` | Required |
 | productCode | `Loan_Product__c` (by `Product_Code__c`, Active) | Unknown → 400 |
 | amount, tenureMonths, purpose | `Amount__c`, `Tenure__c`, `Purpose__c` | Limits enforced by LAMS-031 rules (BR-03) |
-| borrower.* | Contact upserted on `PAN__c` (+ one Account per new borrower) | PAN format `[A-Z]{5}[0-9]{4}[A-Z]` |
+| borrower.* | Borrower found by `Contact.PAN__c` (individuals and directors). Found → update the Contact's fields. Not found → insert an Account (record type Individual Borrower, Name = first + last name) and then its Contact (`FirstName`, `LastName`, `Birthdate`, `Email`, `MobilePhone`, `PAN__c` …); the Contact is Borrower__c. For BL (proposed) a new borrower needs `borrower.businessName`: insert a Business Borrower Account and the director Contact | PAN format `[A-Z]{5}[0-9]{4}[A-Z]`; BL without businessName for a new borrower → 400 (proposed) |
 | details.propertyValue / vehiclePrice / dealerName / gstNumber / annualTurnover | Product-specific fields (BR-05) | Per record type |
 | submit (proposed) | `Status__c` = Submitted when true, else Draft | Submission starts LAMS-038 |
 | – | `Channel__c` = Partner API; RecordTypeId from `Loan_Product__c.Record_Type_Name__c` | Set by the API |
@@ -81,7 +81,8 @@ Both read `RestContext.request` and write `RestContext.response` (status code, J
    - Toggle off → 503 and no application.
    - Unknown product, amount above product max, malformed JSON → 400.
    - GET known → 200 without PAN; GET unknown → 404.
-   - Existing borrower PAN → reuses the Contact, no duplicate.
+   - Existing borrower PAN → reuses the Contact, no duplicate (one individual case, one director case).
+   - New PAN → one Individual Borrower Account and one Contact under it; Borrower__c = that Contact; no Contact without an Account.
    - Every call → one log row with masked PAN.
    - Bulk: not applicable to a one-record endpoint; state this in the class header comment.
 4. Deploy and test: `sf apex run test --class-names LoanApplicationApiTest --code-coverage --result-format human`
@@ -94,11 +95,13 @@ Both read `RestContext.request` and write `RestContext.response` (status code, J
 - **Idempotency with an External ID:** a unique external key turns "send again" into "update", and the unique index is the last guard against races.
 - Inbound Apex runs as the token's user; `with sharing` applies that user's sharing, so plan for what the Integration User can and cannot see.
 - Status codes are part of the contract: 409 for "valid request, wrong state", 503 for "switched off on purpose".
+- **Don't `upsert Contact` on PAN__c for individuals:** a new PAN would insert a Contact with no Account (a private contact, invisible under Controlled by Parent sharing). Look the PAN up, then insert the Individual Borrower Account and its Contact when it is new (§10.1).
 
 ## Done when
 
 - [ ] POST with a new reference returns 201; the same request again returns 200 and only one application exists (BR-06, NFR-05)
 - [ ] POST for an application past Draft returns 409 and changes nothing
+- [ ] A new partner borrower becomes an Individual Borrower Account with one Contact; a known PAN reuses the existing borrower
 - [ ] With `Partner_API_Enabled__c` off, POST and GET return 503
 - [ ] GET by reference returns status with no PAN, income or score
 - [ ] Every call writes a Partner API log row with masked PAN
@@ -107,4 +110,4 @@ Both read `RestContext.request` and write `RestContext.response` (status code, J
 
 ## References
 
-- [BRD](../../BRD/LAMS_BRD.md): §14 LoanApplicationApi, §16 Dealer/DSA row, §10.3 External_Reference__c and Channel__c, §11 `LAMS_Integration`, §12 Partner_API_Enabled__c, BR-01, BR-03, BR-05, BR-06, BR-07, BR-08, BR-65, NFR-05
+- [BRD](../../BRD/LAMS_BRD.md): §10.1 borrower Accounts and Contacts, §14 LoanApplicationApi, §16 Dealer/DSA row, §10.3 External_Reference__c and Channel__c, §11 `LAMS_Integration`, §12 Partner_API_Enabled__c, BR-01, BR-03, BR-05, BR-06, BR-07, BR-08, BR-65, NFR-05

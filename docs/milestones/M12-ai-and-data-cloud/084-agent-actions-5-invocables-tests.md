@@ -44,7 +44,7 @@ Five Apex invocable actions give both agents everything they can do. Each action
 
 - **GetApplicationStatus:** `nextStep` comes from `LAMS_Agent_NextStep_<Status>`, e.g. Document Review → "upload or replace the documents on your checklist". Approved also returns the offer expiry date.
 - **GetEmiSchedule:** reads EMI_Instalment__c rows where Status__c is not Paid or Cancelled, ordered by Instalment_No__c. The what-if EMI uses the same reducing-balance formula as EmiScheduleService (§10.6), with the rate from the product (`whatIfProductCode`, or the loan's product). Call the existing method; do not copy the formula. It also checks the product's Min/Max amount and tenure (BR-03) and returns a message when the values fall outside them. The what-if result is never saved.
-- **CreateServiceRequest:** inserts a Case with record type Loan Service Request, `ContactId` = scope contact, `Loan__c`, `Request_Type__c`, `Origin = 'Agent'`, Subject from a label, Description from input. Set `Database.DMLOptions.assignmentRuleHeader.useDefaultRule = true` so the LAMS-078 rule routes Disputes to Credit Managers and others to Operations (BR-58). A Prepayment Quote then fires the LAMS-061 flow on its own.
+- **CreateServiceRequest:** inserts a Case with record type Loan Service Request, `ContactId` = scope contact, `Loan__c`, `Request_Type__c`, `Origin = 'Agent'`, Subject from a label, Description from input. Set `Database.DMLOptions.assignmentRuleHeader.useDefaultRule = true` so the LAMS-078 rule routes Disputes to the Credit Head queue in the `Lams` org (Credit Managers in BR-58; see the licence deviation in LAMS-078) and others to Operations (BR-58). A Prepayment Quote then fires the LAMS-061 flow on its own.
 - **SummariseApplication:** without `summaryToSave`, it calls the prompt template `LAMS_Application_Summary` (LAMS-085) through `ConnectApi.EinsteinLLM.generateMessagesForPromptTemplate` and returns the text. Nothing is saved. With `summaryToSave`, it updates `AI_Summary__c` in user mode and returns `saved = true` (BR-77: a person reviews before saving). Put the LLM call behind an interface `SummaryGenerator` (proposed) with a `@TestVisible` static instance, so tests use a stub. Generate for at most 10 requests per transaction (proposed); later ones get a "try again" message.
 
 **Tests** (one class per action plus `AgentBorrowerScopeTest`; use TestDataFactory)
@@ -84,7 +84,7 @@ Five Apex invocable actions give both agents everything they can do. Each action
 - [ ] Every invocable method and variable has a label and a planner-oriented description
 - [ ] A portal user's test proves another borrower's application and loan are not returned
 - [ ] With Agentforce_Enabled__c off for the running user, every action returns `available = false`
-- [ ] CreateServiceRequest creates a Case with Origin Agent that the assignment rule routes (Dispute → Credit Managers, others → Operations)
+- [ ] CreateServiceRequest creates a Case with Origin Agent that the assignment rule routes (Dispute → Credit Head queue in this org, others → Operations; LAMS-078)
 - [ ] SummariseApplication saves AI_Summary__c only when `summaryToSave` is passed
 - [ ] No action changes Status__c, Amount__c, Approved_Amount__c or any loan or payment field (code review)
 - [ ] Meets the [Definition of Done](../README.md#definition-of-done)

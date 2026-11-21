@@ -17,7 +17,7 @@ Every application the router sends to Under Review goes to the Credit Managers (
 | `Credit_Managers` | Loan_Application__c | Role: Credit Manager |
 | `Credit_Head` | Loan_Application__c | Role: Credit Head |
 
-Members by role, so no user Ids are hardcoded.
+Members by role, so no user Ids are hardcoded. In the `Lams` org the only holder of the Credit Head role is the System Administrator, who acts as Credit Head (LAMS-029), so the admin is the `Credit_Head` queue's member and approves step 2. The Credit Manager (Salesforce Platform licence) can still approve: approvals on a custom object work on that licence.
 
 **Approval process `Loan_Approval`** on Loan_Application__c
 

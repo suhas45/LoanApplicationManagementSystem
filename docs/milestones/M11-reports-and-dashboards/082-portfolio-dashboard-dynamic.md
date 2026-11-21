@@ -45,7 +45,7 @@ The bucket field (not `Overdue_Bucket__c`) is used for grouping so the chart sho
 1. Check demo data: at least one Active loan per Operations Officer, some overdue (run LoanOverdueBatch on backdated instalments) and a payment this month.
 2. Build the reports; save to *LAMS Portfolio Reports*.
 3. Build the dashboard as above; save; confirm it saved as dynamic (DE limit, C1).
-4. Log in as Operations Officer 1, Operations Officer 2 and the Credit Head; refresh and compare.
+4. Log in as Operations Officer 1 (Salesforce) and Operations Officer 2 (Salesforce Platform; reports and loans work on that licence); refresh and compare. In the `Lams` org the Credit Head is the admin (LAMS-029), who sees every loan through View All Data, so check the whole-book total as the admin.
 5. As an Operations Officer, confirm no PAN, income or score appears on any component or drill-down (AC-14).
 6. Retrieve: `sf project retrieve start --metadata "Report:LAMS_Portfolio_Reports/*" "Dashboard:LAMS_Dashboards/*"` (actual folder API names).
 7. Commit: `feat(reports): Portfolio dynamic dashboard [LAMS-082]`.

@@ -2,7 +2,7 @@
 
 **Milestone:** [M13 – End to end and portfolio](README.md) · **Size:** M (2–5h) · **Delivers:** AC-16
 
-**Depends on:** M01 – M12 done; LAMS-006 and LAMS-040 (mocks and credentials), LAMS-020 (settings script), LAMS-029 (test users), LAMS-073 (Postman collection)
+**Depends on:** M01 – M12 and M14 done (M14 is built between M10 and M11); LAMS-006 and LAMS-040 (mocks and credentials), LAMS-020 (settings script), LAMS-029 (test users), LAMS-073 (Postman collection)
 
 ## Goal
 

@@ -74,6 +74,7 @@ public static List<Loan_Product__c> getActiveProducts()
 - **Flow screen components:** `@api` properties exposed in the meta file become flow inputs/outputs; values only reach the flow through `FlowAttributeChangeEvent`, and `@api validate()` blocks the Next button.
 - **`getRecord` + `getFieldValue`** (Lightning Data Service) reads record fields with sharing and FLS, with no Apex.
 - **Jest mocks:** `@salesforce/apex/...` and `lightning/uiRecordApi` adapters are emitted with test data (`getRecord.emit(mock)`); `lightning/flowSupport` must be mocked to assert `FlowAttributeChangeEvent`.
+- *Parking lot (optional, not in this item):* the guest callback form (`callbackRequest`, LAMS-097) can be pre-filled from this calculator through **Lightning Message Service**. emiCalculator would publish `{ productId, amount, tenure }` on a message channel such as `LAMS_Emi_Selection__c` (proposed) on every change, and callbackRequest would subscribe. LAMS-097 works without it, because callbackRequest computes the indicative EMI itself with `calculateEmi`.
 
 ## Done when
 

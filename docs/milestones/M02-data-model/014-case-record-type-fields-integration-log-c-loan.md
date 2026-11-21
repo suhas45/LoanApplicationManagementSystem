@@ -51,7 +51,7 @@ The remaining data structures exist: service requests as Cases (BR-57, BR-58), a
 | Amount__c | Number(16,2) | Platform events have no Currency type |
 | Payload__c | Long Text Area(131072) | JSON |
 
-**Change Data Capture** — Setup → Change Data Capture → Selected Entities: *Loan (Loan__c)* and *Payment (Payment__c)*. Record how many of the org's entity slots this uses in `docs/ORG_NOTES.md`.
+**Change Data Capture** — Setup → Change Data Capture → Selected Entities: *Loan (Loan__c)* and *Payment (Payment__c)*. Record how many of the org's entity slots this uses in [ORG_NOTES.md](../M01-org-and-repo/ORG_NOTES.md).
 
 **Also:** a tab for Integration_Log__c; a list view *Failed and Retrying* (Status__c in Failed, Retrying) showing Integration, Status, HTTP Status, Retry Count, Next Retry At, Created Date.
 

@@ -24,7 +24,7 @@ The Credit Head sees calls, failures, retries and Gave Up by integration on one 
 
 | Setting | Value |
 | --- | --- |
-| View dashboard as | **Another person: the Credit Head** (static, `dashboardType = SpecifiedUser`; username recorded in README) |
+| View dashboard as | **Another person: the Credit Head** (static, `dashboardType = SpecifiedUser`; username recorded in README). In the `Lams` org that is the admin, who acts as Credit Head (LAMS-029) |
 | Scheduled refresh | Daily 08:00 (proposed); allowed because it is not dynamic |
 
 | Component | Source | Chart |

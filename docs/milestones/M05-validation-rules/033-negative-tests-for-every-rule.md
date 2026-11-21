@@ -2,7 +2,7 @@
 
 **Milestone:** [M05 – Validation rules](README.md) · **Size:** S (≤ 2h) · **Delivers:** NFR-10
 
-**Depends on:** LAMS-031, LAMS-032
+**Depends on:** LAMS-031, LAMS-032; LAMS-094 (Account record types used by `createBorrower`)
 
 ## Goal
 
@@ -15,12 +15,13 @@ Each of the 16 validation rules has an Apex test that tries to save an invalid r
 | Method | Returns |
 | --- | --- |
 | `createProduct(String code)` | Inserted Loan_Product__c with the §5 seed values for PL, HL, AL or BL |
-| `createBorrower(String pan)` | Inserted Account + Contact (PAN__c, Birthdate, Monthly_Income__c, KYC_Status__c = Verified) |
+| `createBorrower(String pan)` | Inserted individual borrower: an Account with record type Individual Borrower (Name = the person's name) plus its Contact (PAN__c, Birthdate, Monthly_Income__c, KYC_Status__c = Verified). Returns the Contact, because Borrower__c is a Contact lookup |
+| `createBusinessBorrower(String pan)` | Inserts a Business Borrower Account and its director Contact (PAN__c, Birthdate, Monthly_Income__c, KYC_Status__c = Verified); returns the Contact (for BL tests) |
 | `newApplication(Loan_Product__c p, Contact b, Decimal amount, Integer tenure, String status)` | Loan_Application__c with the matching record type |
 | `createDocument(Loan_Application__c a, Boolean mandatory, String status)` | Inserted Application_Document__c |
 | `createLoan(Loan_Application__c a)` | Inserted Loan__c (Application_Key__c = a.Id, Status Pending Disbursement) |
 | `newInstalment(Loan__c l, Integer no)` / `newPayment(Loan__c l, Decimal amount, String reference)` | Child records |
-| `createUser(String profileName, String groupOrPermSetName)` | Inserted user with the group or permission set assigned |
+| `createUser(String profileName, String groupOrPermSetName)` | Inserted user with the group or permission set assigned. For a full Salesforce-licence user this can fail with `LICENSE_LIMIT_EXCEEDED` in `Lams` (no free licence); tests that need one, such as Lead work, use `TestDataFactory.loanOfficer()` instead (added in LAMS-095: the existing user holding LAMS_Sales_Access) |
 
 **Test classes and the rule each method covers**
 
@@ -76,6 +77,7 @@ Insert records **directly in the prior status** (for example Document Review) ra
 - **`Database.insert/update(records, false)`** returns per-record errors instead of throwing, which suits bulk and negative tests. `try { update x; Assert.fail(); } catch (DmlException e)` is the single-record alternative.
 - **Validation rules don't count toward Apex coverage**, and neither do `@IsTest` classes like TestDataFactory. These tests guard behaviour, not the coverage number.
 - **Running user matters:** `$Permission` and the label language follow the user in `System.runAs`. Run the tests as an English-language user, or `System.Label` and the message both come back in Hindi. They still match, but the failures are harder to read.
+- **Record type Ids in tests:** look the Account record types up with `Schema.SObjectType.Account.getRecordTypeInfosByDeveloperName().get('Individual_Borrower').getRecordTypeId()`, never a hardcoded Id.
 - **Plan for later automation:** if a later item adds a trigger or flow that breaks these tests, give the tests the mocks or toggles they need (for example `Event_Publishing_Enabled__c = false`). Don't weaken the assertions.
 
 ## Done when

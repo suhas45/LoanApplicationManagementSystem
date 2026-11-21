@@ -30,6 +30,8 @@ Nothing else is muted. LAMS_Override_Credit_Check and LAMS_Waive_Late_Fee stay w
 
 LAMS_Borrower_Portal and LAMS_Integration are not in any group. They are assigned directly to portal users and the Integration User.
 
+**Who gets which group in the `Lams` org (LAMS-029):** LAMS Credit Head → the System Administrator (acting as Credit Head, full licence, Marketing User). LAMS Loan Officer → Loan Officer 1 (Salesforce) and Loan Officer 2 (Salesforce Platform). LAMS Credit Manager → Credit Manager (Salesforce Platform). LAMS Operations → Operations Officer 1 (Salesforce) and Operations Officer 2 (Salesforce Platform). **Groups hold only licence-neutral sets** (BRD v2.3 §11, Appendix D6). LAMS_Loan_Officer, LAMS_Credit and LAMS_Operations no longer contain Lead, Campaign or Case permissions, so the Loan Officer, Credit Manager and Operations groups can be assigned to Salesforce Platform users. `LAMS_Sales_Access` and `LAMS_Case_Access` are **never added to a group**: they are assigned directly to full-licence users in LAMS-029 (Sales → Loan Officer 1; Case → Operations Officer 1 and the admin). The one exception is Campaign create/edit inside LAMS_Policy_Admin, which sits in the LAMS Credit Head group; that group is assigned only to the admin, who has a full licence.
+
 ## Steps
 
 1. Setup → Permission Set Groups → New, for each of the 4 groups. Add the permission sets.
@@ -44,6 +46,7 @@ LAMS_Borrower_Portal and LAMS_Integration are not in any group. They are assigne
 - **Group recalculation is asynchronous.** After any change to a member permission set, the group shows *Outdated* until it recalculates. A deploy that includes groups can finish before they are *Updated*.
 - In Apex tests, assign a group with a `PermissionSetAssignment` (`PermissionSetGroupId`). Then call `Test.calculatePermissionSetGroup(groupId)` before `System.runAs`, or the user won't have the group's permissions yet.
 - Deploy order: permission sets → muting set → groups. A group can't reference a set that doesn't exist.
+- **A group can't add what the licence lacks,** and a group that contains a permission the user's licence doesn't support can't be assigned to that user. That is why licence-bound permissions sit in their own directly assigned sets.
 
 ## Done when
 

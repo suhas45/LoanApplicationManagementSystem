@@ -19,7 +19,7 @@ The root `README.md` replaces the Salesforce DX template. A reviewer can see wha
 | 3 | The problem | 3–4 sentences from BRD §2, plus the four products from §5 |
 | 4 | Feature map | Table: capability → where in LAMS → requirement, condensed from §21 (one row per capability, BR IDs kept) |
 | 5 | Architecture | (a) Data model: the mermaid ER diagram from §10; (b) lifecycle image `docs/BRD/images/lifecycle.png`; (c) origination chain as a mermaid sequence diagram: Application Submitted → CreditBureauService → KycService → EligibilityService → ApplicationRouter (§14); (d) integrations table from §16; (e) AI and Data Cloud: the two agents, five actions, prompt template, and the Data Cloud steps from §17 |
-| 6 | Design decisions | 5–8 bullets from the BRD appendix that show judgement: eligibility after the score, ApplicationRouter, Application_Key__c, org-default toggles, buffered logging, chunked SMS, owner assignment instead of a queue |
+| 6 | Design decisions | 5–8 bullets from the BRD appendix that show judgement: eligibility after the score, ApplicationRouter, Application_Key__c, org-default toggles, buffered logging, chunked SMS, owner assignment instead of a queue, one Individual Borrower or Business Borrower Account per borrower with Contact sharing Controlled by Parent, campaign results through Campaign__c with no Opportunities (Appendix C) |
 | 7 | Feature toggles | §12 table: field, default, what switching it off does |
 | 8 | Repo layout | `force-app/`, `docs/BRD`, `docs/milestones`, `postman/`, `scripts/`, `.github/workflows` |
 | 9 | Setup | Numbered steps (below) |
@@ -36,10 +36,10 @@ The root `README.md` replaces the Salesforce DX template. A reviewer can see wha
 | --- | --- |
 | 1 | Prerequisites: Developer Edition with Agentforce and Data Cloud, Salesforce CLI (`sf`), Node (for Jest), Postman |
 | 2 | `git clone`, `npm install` |
-| 3 | `sf org login web --alias lams --set-default` |
+| 3 | `sf org login web --alias Lams --set-default` (already done for the author's org) |
 | 4 | `sf project deploy start --manifest manifest/package.xml` (or each build-step manifest in order; list them) |
 | 5 | Post-deploy settings: `sf apex run --file scripts/apex/<LAMS-020 script>` (use the actual file name) |
-| 6 | Seed data: `sf data import tree --plan <LAMS-016 plan>` |
+| 6 | Seed data: `sf data import tree --plan <LAMS-016 products plan>`, then the LAMS-016 borrower load script (it fills in the Account record type Ids before running import tree) |
 | 7 | Users and permission set group assignments (LAMS-029) |
 | 8 | Fill External Credentials with the mock credentials; mock URLs from LAMS-006 |
 | 9 | Schedule jobs: LoanOverdueScheduler (nightly), IntegrationRetryBatch (hourly); Daily Reminders flow active |
@@ -50,9 +50,16 @@ The root `README.md` replaces the Salesforce DX template. A reviewer can see wha
 | Area | Step | Detail |
 | --- | --- | --- |
 | Org features | Digital Experiences, Translation Workbench (Hindi), Business Hours "LAMS IST" if not deployed | LAMS-005 |
+| Borrower model | Contact OWD set to Controlled by Parent (a design choice); Person Accounts deliberately **not** enabled (irreversible; individuals are Individual Borrower Accounts with one Contact); Developer Edition sample records deleted | LAMS-094 |
+| Users | Licence plan (2 Salesforce, 3 Salesforce Platform staff users; the admin acts as Credit Head); Credit_Head role and Marketing User checkbox on the admin (not a permission, so it is not in any permission set) | LAMS-029 |
 | Secrets | External Credential principals and values; CI auth URL as a GitHub secret | LAMS-040, LAMS-004 |
 | Custom setting data | Org defaults via the script (data, not metadata) | LAMS-020 |
 | Experience Cloud | Site publish, self-registration settings, guest and member settings not retrieved | LAMS-074 – LAMS-076 |
+| Portal public page | *Public can access the site* turned on for the *Request a Callback* page only (every other page Requires Login); guest profile Apex access to CallbackRequestController; republish | LAMS-097 |
+| Leads | Default Lead Owner (queue Leads – Retail) and *Notify Default Lead Owner*; the assignment-rule entry that names Priya Sharma (org-specific user); Path Settings enabled if not retrieved | LAMS-095, LAMS-096 |
+| Web-to-Lead | Enable Web-to-Lead, Default Lead Creator, no auto-response template; regenerate `web/enquiry-form.html` per org (it holds the org Id, field Ids and campaign Ids); where the form is hosted | LAMS-097, LAMS-099 |
+| reCAPTCHA | reCAPTCHA v2 key pair for the form's domain, entered in Web-to-Lead settings; keys never committed | LAMS-097 |
+| Campaigns | Marketing User on the admin (Credit Head); if Flow can't create CampaignMemberStatus, add *Applied* by hand under each campaign's Advanced Setup (fallback) | LAMS-029, LAMS-099 |
 | Agentforce | Enable Agentforce; agent users and permission sets; topics and actions if the metadata does not deploy; Messaging channel, Omni-Channel flow, Embedded Service deployment, user verification; Operations queue presence | LAMS-086, LAMS-087 |
 | Prompt templates | Activate after deploy | LAMS-085 |
 | Data Cloud | Provisioning, data streams, DMO mappings, identity resolution, calculated insights, segments, Copy Field enrichment, data action and target | LAMS-088, LAMS-089, `docs/DATA_CLOUD_SETUP.md` (proposed) |
@@ -67,11 +74,11 @@ The root `README.md` replaces the Salesforce DX template. A reviewer can see wha
 | `approval-history-hl.png` | Two-step approval on the Home Loan |
 | `secured-review.png` | Secured Loan Review orchestration stages |
 | `offer-letter.png` | OfferLetter PDF |
-| `dashboard-origination.png`, `dashboard-portfolio.png`, `dashboard-integrations.png` | The three dashboards |
+| `dashboard-origination.png`, `dashboard-portfolio.png`, `dashboard-integrations.png`, `dashboard-sales.png` | The four dashboards (Sales from LAMS-100) |
 | `integration-log.png` | Integration logs with retries and Gave Up |
 | `ac-15-guardrails.png` | Borrower Assistant declining and offering a hand-off |
 | `officer-assistant-summary.png` | Application summary with risk flags |
-| `data-cloud-profile.png`, `contact-pre-approved.png` | Unified profile; Contact with Repayment_Score__c and Pre_Approved__c |
+| `data-cloud-profile.png`, `borrower-pre-approved.png` | Unified profile; borrower Contact with Repayment_Score__c and Pre_Approved__c |
 | `lams-settings.png` | lamsSettings toggles |
 
 ## Steps
@@ -80,7 +87,7 @@ The root `README.md` replaces the Salesforce DX template. A reviewer can see wha
 2. Write the feature map from §21 and the toggles table from §12. Check every class, flow and field name against `force-app/`; the README must match what was built, not the plan.
 3. Add the mermaid diagrams. Check that they render on GitHub (push to a branch and view it).
 4. Write the setup steps and dry-run them. If possible, do this on a fresh Developer Edition, or at least redeploy to the current org from a clean clone, and fix every step that fails.
-5. Collect the manual steps from the M10 – M12 item notes and `docs/DATA_CLOUD_SETUP.md`.
+5. Collect the manual steps from the LAMS-094 and M10 – M14 item notes and `docs/DATA_CLOUD_SETUP.md`.
 6. Take any missing screenshots with demo data only (no real names, PANs or emails). Compress them (≈ under 500 KB each) and link them.
 7. Update the BRD if anything built differs from it (Definition of Done).
 8. Commit: `docs(readme): architecture, setup, manual steps and screenshots [LAMS-092]`.

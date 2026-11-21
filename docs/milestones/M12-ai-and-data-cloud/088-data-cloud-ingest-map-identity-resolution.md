@@ -68,7 +68,7 @@ Rules 2 and 3 add a name match so two different PANs that share a family email o
 
 ## Steps
 
-1. Confirm Data Cloud is provisioned and assign yourself the admin permission set. Note the edition limits (data rows, ruleset runs, credits) in `docs/ORG_NOTES.md`.
+1. Confirm Data Cloud is provisioned and assign yourself the admin permission set. Note the edition limits (data rows, ruleset runs, credits) in [ORG_NOTES.md](../M01-org-and-repo/ORG_NOTES.md).
 2. Create the five CRM data streams with the categories above, and add the two Contact formula fields. Wait for the first ingestion; check record counts against SOQL counts in the org.
 3. Create the four custom DMOs and map all streams as in the table. Set the relationships: LAMS Loan → Individual, EMI Instalment → LAMS Loan, Payment → LAMS Loan, Application → Individual.
 4. Create the `LAMS Borrowers` ruleset with the three match rules and the reconciliation rules; run it.

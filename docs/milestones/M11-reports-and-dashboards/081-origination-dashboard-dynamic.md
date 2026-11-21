@@ -2,7 +2,7 @@
 
 **Milestone:** [M11 – Reports and dashboards](README.md) · **Size:** M (2–5h) · **Delivers:** BR-62
 
-**Depends on:** LAMS-080 (report types, folders), LAMS-016 (demo data), LAMS-029 (Loan Officers, Credit Manager, Credit Head users), LAMS-022 (role hierarchy), LAMS-044 (manual overrides exist)
+**Depends on:** LAMS-080 (report types, folders), LAMS-016 (demo data), LAMS-029 (Loan Officers, Credit Manager; the admin acts as Credit Head), LAMS-022 (role hierarchy), LAMS-044 (manual overrides exist)
 
 ## Goal
 
@@ -43,7 +43,7 @@ Credit Managers see applications by status and product, approval rate, rejection
 1. Check demo data covers several statuses and owners; if not, add 10–20 applications across both Loan Officers (data tree or anonymous Apex in `scripts/data/`).
 2. Build each report in Lightning Report Builder; save to *LAMS Origination Reports*.
 3. Create the dashboard folder and dashboard; set *View dashboard as: Me*; add components and the filter.
-4. Log in as Loan Officer 1, Loan Officer 2, the Credit Manager and the Credit Head (Setup → Users → Login) and refresh the dashboard for each.
+4. Log in as Loan Officer 1 (Salesforce licence) and Loan Officer 2 (Salesforce Platform) and refresh the dashboard for each: this pair is the dynamic-dashboard demo in the `Lams` org. Then check it as the Credit Manager. The Credit Head is the admin here, whose View All Data shows everything whatever the sharing, so the admin's view proves nothing about BR-62 (LAMS-029).
 5. Retrieve: `sf project retrieve start --metadata "Report:LAMS_Origination_Reports/*" "Dashboard:LAMS_Dashboards/*" DashboardFolder ReportFolder` (use the actual folder API names).
 6. Commit: `feat(reports): Origination dynamic dashboard [LAMS-081]`.
 
@@ -57,7 +57,7 @@ Credit Managers see applications by status and product, approval rate, rejection
 ## Done when
 
 - [ ] All five reports and the dashboard exist and render with demo data
-- [ ] Loan Officer 1 and Loan Officer 2 see different totals; the Credit Manager sees both officers' applications; the Credit Head sees all (BR-62)
+- [ ] Loan Officer 1 and Loan Officer 2 see different totals (the demo comparison, with screenshots); the Credit Manager sees both officers' applications; the admin acting as Credit Head sees all (BR-62)
 - [ ] An Operations Officer cannot open the dashboard's reports (folder access)
 - [ ] Reports, dashboard and folders are in source; the running-user setting is noted in the README
 - [ ] Meets the [Definition of Done](../README.md#definition-of-done)

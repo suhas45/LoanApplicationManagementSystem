@@ -35,7 +35,7 @@ Default values (from §12):
 | SMS_Enabled__c | false | Refer_Ratio_Tolerance__c | 5 |
 | Partner_API_Enabled__c | false | Approval_Reminder_Days__c | 2 |
 | Event_Publishing_Enabled__c | true | Core_Banking_Sync_Enabled__c | false |
-| Late_Fees_Enabled__c | true | | |
+| Late_Fees_Enabled__c | true | Callback_Rate_Limit__c | 3 (proposed, used by LAMS-097) |
 
 Shape of the script:
 

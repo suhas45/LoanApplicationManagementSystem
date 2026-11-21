@@ -2,7 +2,7 @@
 
 **Milestone:** [M10 – Portal](README.md) · **Size:** S (≤ 2h) · **Delivers:** BR-59
 
-**Depends on:** LAMS-074 (site and LAMS Borrower members), LAMS-026 (Private OWDs), LAMS-029 (two portal borrowers), LAMS-076 (pages to test through)
+**Depends on:** LAMS-074 (site and LAMS Borrower members), LAMS-026 (Private OWDs, Contact Controlled by Parent), LAMS-094 (Account record types), LAMS-029 (two portal borrowers), LAMS-076 (pages to test through)
 
 ## Goal
 
@@ -17,8 +17,9 @@ A borrower sees only their own applications, documents, loans, instalments, paym
 | Loan_Application__c | Contact | `Loan_Application__c.Borrower__c` | Read/Write (draft save, Respond to Offer, Withdraw) |
 | Loan__c | Contact | `Loan__c.Borrower__c` | Read Only |
 | Case | Contact | `Case.ContactId` | Read/Write (proposed; add details to own request) |
-| Contact (proposed) | Contact | `Contact.Id` | Read Only — so the flow can set `Borrower__c` to the user's own Contact |
-| Account (proposed) | Account | `Account.Id` | Read Only |
+| Account | Account | `Account.Id` | Read Only. `User.AccountId` is the borrower's own Individual Borrower (or Business Borrower) Account |
+
+There is no Contact row: Contact sharing is Controlled by Parent (LAMS-026), so the sharing set cannot target Contact, and the Account row also opens the borrower's own Contact (the one the New Loan Application flow sets as `Borrower__c`). BRD §11 lists "the user's own Contact and Account"; the Account row delivers both.
 
 Child objects follow their parent (Controlled by Parent): Application_Document__c, EMI_Instalment__c, Payment__c (§11).
 
@@ -26,12 +27,13 @@ Child objects follow their parent (Controlled by Parent): Application_Document__
 
 | Setup | Assert |
 | --- | --- |
-| Internal owner with a role (`System.runAs` to avoid mixed DML); two Accounts/Contacts A and B; two LAMS Borrower users; one application, document, loan, instalment and payment per borrower | – |
+| Internal owner with a role (`System.runAs` to avoid mixed DML); two Individual Borrower Accounts with Contacts A and B (TestDataFactory `createBorrower`); two LAMS Borrower users on those Contacts; one application, document, loan, instalment and payment per borrower | – |
 | `System.runAs(userA)`: `SELECT Id FROM Loan_Application__c` | Only A's application |
 | `System.runAs(userA)`: `SELECT Id FROM Loan_Application__c WHERE Id = :appB` | 0 rows |
 | `SELECT HasReadAccess FROM UserRecordAccess WHERE UserId = :userA AND RecordId = :appB` | false (same for B's loan, payment and case) |
 | `System.runAs(userA)`: update B's application | `DmlException` (insufficient access) |
 | User A on own loan's EMI rows and payments | Visible |
+| `System.runAs(userA)`: own Account and Contact; B's Account and Contact | Own visible (read only); B's 0 rows |
 
 ## Steps
 
@@ -46,6 +48,7 @@ Child objects follow their parent (Controlled by Parent): Application_Document__
 
 - **Sharing sets work only for high-volume portal licences** (Customer Community, Customer Community Login): these users have no role, so sharing rules and role hierarchy cannot reach them. Access is granted by matching a field on the record to the user's Contact or Account.
 - Sharing sets give access *to* portal users; for internal users to see portal-owned records you use share groups or ownership/assignment (here, owner reassignment in LAMS-037 and Case queues in LAMS-078).
+- **Sharing sets and Controlled by Parent:** an object whose OWD is Controlled by Parent can't be a sharing-set target; grant the parent instead. That is why Contact access comes from the Account row.
 - Hiding a page or link is not security. AC-13 is proved only by testing access to the record Id directly.
 - `UserRecordAccess` is the quickest way to assert sharing in Apex tests.
 
@@ -53,10 +56,11 @@ Child objects follow their parent (Controlled by Parent): Application_Document__
 
 - [ ] **AC-13:** logged in as borrower A, opening borrower B's application by URL is refused (screenshot saved)
 - [ ] Borrower A sees own applications, documents, loans, instalments, payments and cases, and none of B's
+- [ ] Borrower A can read their own Account and Contact but not B's
 - [ ] `PortalAccessTest` passes, covering application, loan, payment and case
 - [ ] Sharing set in source or listed as a manual step in the README
 - [ ] Meets the [Definition of Done](../README.md#definition-of-done)
 
 ## References
 
-- [BRD](../../BRD/LAMS_BRD.md): §11 Sharing (portal sharing set), OWD table, profiles; §9 AC-13; BR-59; §20 step 4 (AC-13)
+- [BRD](../../BRD/LAMS_BRD.md): §11 Sharing (portal sharing set), OWD table, profiles; §10.1 borrower Accounts; §9 AC-13; BR-59; §20 step 4 (AC-13)

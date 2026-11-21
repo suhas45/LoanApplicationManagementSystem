@@ -2,7 +2,7 @@
 
 **Milestone:** [M01 – Org and repo](README.md) · **Size:** M (2–5h) · **Delivers:** D2, §16
 
-**Depends on:** LAMS-002 (`docs/ORG_NOTES.md` exists to record the URLs). Independent of LAMS-003 – LAMS-005.
+**Depends on:** LAMS-002 ([ORG_NOTES.md](ORG_NOTES.md) exists to record the URLs). Independent of LAMS-003 – LAMS-005.
 
 ## Goal
 
@@ -98,7 +98,7 @@ The success response body the KYC mock returns:
 </soapenv:Envelope>
 ```
 
-**In the repo:** `mocks/<integration>/` holds one example file per response (`success.json`, `failure-503.json`, … ; `.xml` for KYC) so the mocks can be rebuilt and the same bodies reused as `Mock_Response__c` values in LAMS-018. Base URLs and plan limits go in a *Mock endpoints* section of `docs/ORG_NOTES.md`. No credentials: the mocks are open, and External Credentials (LAMS-040) get dummy values.
+**In the repo:** `mocks/<integration>/` holds one example file per response (`success.json`, `failure-503.json`, … ; `.xml` for KYC) so the mocks can be rebuilt and the same bodies reused as `Mock_Response__c` values in LAMS-018. Base URLs and plan limits go in a *Mock endpoints* section of [ORG_NOTES.md](ORG_NOTES.md). No credentials: the mocks are open, and External Credentials (LAMS-040) get dummy values.
 
 ## Steps
 
@@ -108,7 +108,7 @@ The success response body the KYC mock returns:
    `curl.exe -i -X POST https://lams-bureau.free.beeceptor.com/v1/credit-score -H "Content-Type: application/json" -d '{\"pan\":\"AAAPS1001A\"}'` → 200, score 790
    Same with `AAAPS1009E` → 503; `AAAPG1008F` → 200, score 685. If PowerShell mangles the quotes, put the body in a file and send `--data-binary "@mocks/credit-bureau/request.json"`.
 4. Repeat for KYC (send the SOAP envelope from a file with `--data-binary "@mocks/kyc/request.xml"`), Payout, SMS and Core Banking.
-5. Record base URLs, paths, rule list and free-plan limits in `docs/ORG_NOTES.md`.
+5. Record base URLs, paths, rule list and free-plan limits in [ORG_NOTES.md](ORG_NOTES.md).
 6. Commit: `chore(mocks): public mock endpoints and response contracts [LAMS-006]`.
 
 ## Learn
@@ -123,7 +123,7 @@ The success response body the KYC mock returns:
 - [ ] Five public endpoints respond over HTTPS from outside your network (test once from your phone's browser or a second network)
 - [ ] Every row of the failure-rules table returns the stated status code, checked with `curl.exe`, and the default request returns the success response
 - [ ] `mocks/kyc/KycService.wsdl` and the example response files are committed
-- [ ] `docs/ORG_NOTES.md` lists base URLs, paths and plan limits
+- [ ] [ORG_NOTES.md](ORG_NOTES.md) lists base URLs, paths and plan limits
 - [ ] Meets the [Definition of Done](../README.md#definition-of-done)
 
 ## References

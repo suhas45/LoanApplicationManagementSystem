@@ -2,11 +2,11 @@
 
 **Milestone:** [M10 – Portal](README.md) · **Size:** M (2–5h) · **Delivers:** BR-59
 
-**Depends on:** LAMS-005 (Digital Experiences enabled), LAMS-008 (Contact `PAN__c` + Duplicate Rule), LAMS-023 (LAMS Borrower profile), LAMS-024 (`LAMS_Borrower_Portal`), LAMS-021 (custom labels + Hindi), LAMS-029 (portal borrower users, internal users with roles)
+**Depends on:** LAMS-005 (Digital Experiences enabled), LAMS-094 (Individual Borrower record type), LAMS-008 (Contact `PAN__c` + Duplicate Rule), LAMS-023 (LAMS Borrower profile), LAMS-024 (`LAMS_Borrower_Portal`), LAMS-021 (custom labels + Hindi), LAMS-029 (portal borrower users, internal users with roles)
 
 ## Goal
 
-Stand up the **LAMS Borrower Portal** on the Aura Customer Service template, and let a new borrower register themselves: registration creates their own Account and Contact and refuses a PAN that already exists (BR-02, BR-59, §15).
+Stand up the **LAMS Borrower Portal** on the Aura Customer Service template, and let a new borrower register themselves: registration creates their own **Account** (record type Individual Borrower, named after them) and **Contact** and refuses a PAN that already exists (BR-02, BR-59, §10.1, §15). Small-Business directors are set up by staff, not through self-registration (proposed).
 
 ## Build
 
@@ -18,16 +18,16 @@ Stand up the **LAMS Borrower Portal** on the Aura Customer Service template, and
 | Template | Customer Service (Aura) |
 | URL path | `borrowers` (proposed) → `https://<mydomain>.my.site.com/borrowers` |
 | Members (Administration → Members) | Profile **LAMS Borrower** (Customer Community Login); System Administrator for testing |
-| Public access | Off (Settings → *Public can access the site* unticked): only Login, Register and Forgot Password are public (proposed) |
+| Public access | Off (Settings → *Public can access the site* unticked): only Login, Register and Forgot Password are public (proposed). **Later change:** LAMS-097 (M14) turns *Public can access the site* on for one new page only, *Request a Callback* (`/request-callback`, Page Access Public). Every other page stays *Requires Login*; keep it that way when you build LAMS-076 |
 | Languages | English (default), Hindi (Builder → Settings → Languages), NFR-12 |
-| Guest record default owner | An active internal user **with a role** (proposed: the Credit Head user); records created during registration are owned by this user (Administration → Preferences / guest user settings) |
+| Guest record default owner | An active internal user **with a role** (proposed: the admin, who holds the Credit Head role in the `Lams` org); records created during registration are owned by this user (Administration → Preferences / guest user settings) |
 | Login & Registration | *Allow customers and partners to self-register* on; Registration page type = Experience Builder page *Register*; Profile = LAMS Borrower |
 
 **Registration page** — replace the template's register component with LWC **`borrowerSelfRegister`** (proposed name), target `lightningCommunity__Page`, calling **`BorrowerSelfRegController`** (proposed name).
 
 | Form field | Saved to | Rule |
 | --- | --- | --- |
-| First name, Last name | Contact, Account Name, User | Required |
+| First name, Last name | Contact, Account Name ("First Last"), User | Required |
 | Email | Contact.Email, User.Email; Username = email + `.lams` (proposed suffix) | Required, valid email |
 | Mobile | Contact.MobilePhone | Required |
 | Date of birth | Contact.Birthdate | Required; age ≥ 18 (proposed) |
@@ -39,12 +39,12 @@ Stand up the **LAMS Borrower Portal** on the Aura Customer Service template, and
 
 | Method | Behaviour |
 | --- | --- |
-| `@AuraEnabled public static String register(RegistrationRequest req)` | 1) validate fields; 2) `SELECT Id FROM Contact WHERE PAN__c = :pan LIMIT 1` → if found, throw `AuraHandledException` with label `LAMS_Portal_PAN_Already_Registered` (proposed): "This PAN is already registered; sign in or contact your branch" — never reveal the name; 3) insert Account (one per borrower, avoids account skew, §10.1); 4) insert Contact; 5) `Site.createExternalUser(user, accountId, password)`; 6) assign `LAMS_Borrower_Portal` in an `@future` method (mixed DML); 7) return `Site.login(username, password, startUrl).getUrl()` |
+| `@AuraEnabled public static String register(RegistrationRequest req)` | 1) validate fields; 2) `SELECT Id FROM Contact WHERE PAN__c = :pan LIMIT 1` → if found, throw `AuraHandledException` with label `LAMS_Portal_PAN_Already_Registered` (proposed): "This PAN is already registered; sign in or contact your branch" — never reveal the name; 3) insert Account with RecordTypeId = Individual Borrower (`Schema.SObjectType.Account.getRecordTypeInfosByDeveloperName()`), Name = first + last name, OwnerId = the guest record default owner (one Account per borrower, avoids account skew, §10.1); 4) insert the Contact under it; 5) `Site.createExternalUser(user, accountId, password)` with `user.ContactId` = that Contact; 6) assign `LAMS_Borrower_Portal` in an `@future` method (mixed DML); 7) return `Site.login(username, password, startUrl).getUrl()` |
 | Errors | Any DML error rolls back with `Database.setSavepoint`/`rollback`; messages come from custom labels (EN/HI) |
 
 Guest user profile (*LAMS Borrower Portal Profile*, created with the site): Apex Class Access to `BorrowerSelfRegController` only; no object access needed.
 
-**Test class `BorrowerSelfRegControllerTest`:** valid registration (Account + Contact created; `Site.createExternalUser` returns null in tests, so assert the records and handle null), duplicate PAN refused, bad PAN format refused, missing field refused.
+**Test class `BorrowerSelfRegControllerTest`:** valid registration (one Individual Borrower Account and one Contact with PAN__c created; `Site.createExternalUser` returns null in tests, so assert the records and handle null), duplicate PAN refused, bad PAN format refused, missing field refused.
 
 ## Steps
 
@@ -65,13 +65,14 @@ Guest user profile (*LAMS Borrower Portal Profile*, created with the site): Apex
 
 - **Aura templates vs LWR:** Customer Service is an Aura template; it supports custom Aura theme layouts (LAMS-075). LWR is newer and faster but is not used here on purpose (§15).
 - **Guest user security:** guest users own nothing; records they create go to the site's default owner, who must have a role for portal users to be created under the Account.
+- **One Account per portal user:** each borrower gets their own Individual Borrower Account, so there is no shared "Portal Borrowers" Account with thousands of Contacts (account data skew), and the Contact's sharing follows its own Account (Controlled by Parent).
 - **`without sharing` in guest context** must be narrow: check, create, return nothing sensitive. A PAN lookup that answered "registered to Ravi Kumar" would be a data leak.
 - Not everything deploys: the ExperienceBundle carries pages and theme; membership, some login settings and publishing are org steps.
 
 ## Done when
 
 - [ ] The site is live at the `borrowers` URL; only Login, Register and Forgot Password are reachable without login
-- [ ] A new borrower can register; an Account, a Contact with PAN and a LAMS Borrower user exist; the user has `LAMS_Borrower_Portal`
+- [ ] A new borrower can register; an Individual Borrower Account, a Contact with PAN and a LAMS Borrower user exist; the user has `LAMS_Borrower_Portal`
 - [ ] Registering with an existing PAN is refused with the EN/HI label and creates nothing (BR-02)
 - [ ] `BorrowerSelfRegControllerTest` passes with ≥ 90% coverage
 - [ ] Site metadata is in source; manual steps are listed in the README

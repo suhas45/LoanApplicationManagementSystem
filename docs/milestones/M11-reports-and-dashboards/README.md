@@ -1,6 +1,6 @@
 # M11 – Reports and dashboards
 
-≈ 5h · 4 work items · Starts after: [M10 – Portal](../M10-portal/README.md)
+≈ 5h · 4 work items · Starts after: [M14 – Sales: leads and campaigns](../M14-sales-leads-and-campaigns/README.md)
 
 **Goal:** Credit and Operations see origination, portfolio and integration health on dashboards.
 **Exit criteria:** Each dynamic dashboard shows different data for two different users.

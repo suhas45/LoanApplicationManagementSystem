@@ -1,6 +1,6 @@
-# Loan Application Management System – BRD & Solution Design v2.1
+# Loan Application Management System – BRD & Solution Design v2.3
 
-v2.1 · Nov 21, 2026 · This file is the source of truth. The original v2 [Claude Doc](https://claude.ai/artifact/23Zni2f18b3w7BkGGmKvUV) is no longer updated.
+v2.3 · Nov 21, 2026 · This file is the source of truth. The original v2 [Claude Doc](https://claude.ai/artifact/23Zni2f18b3w7BkGGmKvUV) is no longer updated.
 
 This v2 replaces the Nov 10 simplified BRD. It splits the work into a business BRD (Part A, no Salesforce terms) and a Solution Design (Part B, how Salesforce delivers it). Every business rule has an ID (BR-xx), and Part B points back to those IDs. The appendix lists every fix made since v1.
 
@@ -9,7 +9,7 @@ This v2 replaces the Nov 10 simplified BRD. It splits the work into a business B
 | A. Business requirements | §1–§9 | What the business needs, rules, acceptance criteria |
 | B. Solution design | §10–§21 | Objects, security, toggles, automation, Apex, UI, integrations, build order |
 | Traceability | §21 | Which Salesforce feature delivers which requirement |
-| Appendices | A: changes from v1 · B: v2.1 decisions | What changed and why |
+| Appendices | A: changes from v1 · B: v2.1 decisions · C: v2.2 sales · D: v2.3 org decisions | What changed and why |
 
 Amounts are in ₹ (lakh = 1,00,000; crore = 1,00,00,000).
 
@@ -17,7 +17,7 @@ Amounts are in ₹ (lakh = 1,00,000; crore = 1,00,00,000).
 
 ## 1. Project overview and objectives
 
-LAMS is a lending platform that takes a borrower from application to loan closure in one system: apply, check eligibility, collect documents, approve, disburse, collect EMIs and follow up on overdue loans. It supports four products (Personal, Home, Auto, Small-Business). Products are configured as data, so a fifth product needs no new process.
+LAMS is a lending platform that takes a borrower from application to loan closure in one system: apply, check eligibility, collect documents, approve, disburse, collect EMIs and follow up on overdue loans. It supports four products (Personal, Home, Auto, Small-Business). Products are configured as data, so a fifth product needs no new process. It is a custom app on the Salesforce Platform that also uses Sales Cloud (leads, campaigns), Service Cloud (cases, messaging), Experience Cloud (portal), Agentforce and Data Cloud.
 
 **Business objectives**
 
@@ -64,6 +64,7 @@ LAMS solves these with one system of record, enforced rules, a borrower portal, 
 | Analytics | Origination, portfolio and integration dashboards; customer insights |
 | AI | Borrower assistant and loan officer assistant (explain and prepare only) |
 | Configuration | Feature toggles and tunable values without a release |
+| Sales | Callback requests and enquiries as leads, qualification, conversion into a draft application, campaigns for pre-approved top-up offers |
 
 **Out of scope (this version)**
 
@@ -75,9 +76,9 @@ Five business users. Credit Head sits at the top; Loan Officers report to Credit
 
 | User | Persona and goal | Does | Approval authority |
 | --- | --- | --- | --- |
-| Loan Officer | Branch officer; wants complete files fast | Captures applications, chases and verifies documents, confirms documents for secured loans | None; can never approve |
+| Loan Officer | Branch officer; wants complete files fast | Qualifies and converts leads, captures applications, chases and verifies documents, confirms documents for secured loans | None; can never approve |
 | Credit Manager | Underwriter; wants clean, comparable files | Reviews eligibility and credit, approves or rejects, can reduce the amount | Up to ₹25 lakh |
-| Credit Head | Head of lending; owns policy | Second approval above ₹25 lakh, maintains products and settings, handles escalations | Above ₹25 lakh |
+| Credit Head | Head of lending; owns policy | Second approval above ₹25 lakh, maintains products, settings and campaigns, handles escalations | Above ₹25 lakh |
 | Operations Officer | Servicing; wants loans paid on time | Field verification, disbursement, payments, overdue follow-up | None |
 | Borrower | Individual or business owner; wants an answer and clarity | Applies, uploads documents, accepts or declines the offer, views loan and EMIs, raises requests | None |
 
@@ -116,6 +117,8 @@ All products: late fee 2% per month on the overdue EMI, grace period 5 days. Age
 ![Application and loan lifecycle](images/lifecycle.png)
 
 The happy path runs along the top row and back along the bottom row. Small personal loans can skip manual review, and secured loans add a field check inside Under Review.
+
+**Before Draft:** an enquiry lives as a Lead (§6.17). Converting a qualified lead creates the borrower and a Draft application.
 
 **Loan statuses:** Pending Disbursement → Active (funds paid out, EMI schedule created) → Closed (all instalments paid, or prepaid in full).
 
@@ -285,6 +288,18 @@ Each rule has a stable ID. Part B and §21 trace back to these IDs.
 | BR-81 | Business thresholds are configurable: auto-approve maximum, second-approval threshold, offer validity days, application expiry days, KYC reuse months. |
 | BR-82 | Integration endpoints, timeouts and retry limits move between environments with the code, not by hand. |
 
+### 6.17 Sales: leads and campaigns (**new** v2.2)
+
+| ID | Requirement |
+| --- | --- |
+| BR-83 | A visitor can request a callback from the EMI calculator (portal or public page) or an enquiry form, giving product of interest, amount, tenure, name, mobile, city and consent. It becomes a Lead. |
+| BR-84 | New leads are assigned automatically by product and city to a Loan Officer, who is notified. Leads not contacted within 1 business day are listed for follow-up. |
+| BR-85 | A lead moves New → Contacted → Qualified → Converted, or ends Unqualified with a reason. Each stage shows guidance for the officer. |
+| BR-86 | A lead with the same PAN or mobile as an existing lead or borrower is flagged before it is saved. |
+| BR-87 | Converting a qualified lead creates (or reuses) the borrower — an Individual Borrower Account with its Contact, or a Business Borrower Account with the director as Contact — and a Draft application with the lead's product, amount and tenure. No opportunity is created. |
+| BR-88 | The Credit Head runs campaigns, for example a pre-approved top-up offer. Pre-approved borrowers join the active top-up campaign automatically, once. Every lead and application records the campaign that produced it. |
+| BR-89 | Sales reporting shows leads by source and status, lead-to-application conversion rate, time to first contact, and applications and disbursed amount by campaign. |
+
 ## 7. Non-functional requirements
 
 | ID | Area | Requirement |
@@ -307,7 +322,7 @@ Each rule has a stable ID. Part B and §21 trace back to these IDs.
 
 **Assumptions**
 
-- A1. Each borrower is one person or one business with a valid PAN; joint applications are out of scope.
+- A1. Each borrower is one person (Individual Borrower Account + Contact) or one business represented by its director (Business Borrower Account + Contact), with a valid PAN; joint applications are out of scope.
 - A2. Interest is fixed for the loan's life; there are no rate resets.
 - A3. Processing fee is deducted from the payout, not billed separately; tax on fees is ignored.
 - A4. All external systems are mocks that return realistic success and failure responses.
@@ -349,6 +364,8 @@ Each rule has a stable ID. Part B and §21 trace back to these IDs.
 | AC-14 | An Operations Officer cannot see PAN, income or credit score on any page, report or list view. | BR-71 |
 | AC-15 | The borrower assistant, asked to approve or increase a loan, declines and offers a hand-off. | BR-75 |
 | AC-16 | End to end: one Personal Loan and one Home Loan run from Draft to Closed with every integration in mock mode. | All |
+| AC-17 | Given a portal callback request for a ₹40 lakh Home Loan from Pune, a Lead is created and assigned to the secured-loan queue; converting it creates an Individual Borrower Account and Contact and a Draft Home application for ₹40 lakh with the requested tenure, and no opportunity. | BR-83, BR-84, BR-87 |
+| AC-18 | Given a borrower whose Pre_Approved__c becomes true, they join the active top-up campaign once; an application they submit carries that campaign, its member status becomes Applied, and the campaign report counts it. | BR-88, BR-89 |
 
 **Success metrics** (measured on demo data at the end of the build)
 
@@ -361,12 +378,13 @@ Each rule has a stable ID. Part B and §21 trace back to these IDs.
 | Toggles in BR-79 that work both on and off with no deployment | 100% | O5 |
 | External calls with a log row | 100% | O6 |
 | Apex test coverage | ≥ 90% per class | NFR-10 |
+| Leads converted to applications (demo data) | ≥ 30% | O3 |
 
 # Part B – Solution Design
 
 ## 10. Data model
 
-Thirteen objects and settings carry the whole lifecycle. There are no separate objects for approvals (standard approval history), notifications (email and SMS logs) or collections (DPD fields plus Tasks). Fields marked **new** or **changed** differ from v1.
+Fifteen objects and settings carry the whole lifecycle, including the standard Lead and Campaign (v2.2). There are no separate objects for approvals (standard approval history), notifications (email and SMS logs) or collections (DPD fields plus Tasks). Fields marked **new** or **changed** differ from v1.
 
 ```mermaid
 erDiagram
@@ -382,13 +400,25 @@ erDiagram
   Loan__c ||--o{ Case : "service requests"
   Contact ||--o{ Case : "raised by"
   Loan_Application__c ||--o{ Integration_Log__c : "calls logged"
+  Lead }o--o| Contact : "converts to"
+  Campaign ||--o{ Lead : "generates"
+  Campaign ||--o{ Loan_Application__c : "source of"
 ```
 
-### 10.1 Contact (borrower)
+### 10.1 Borrower: Account + Contact with record types (**changed** v2.3)
+
+Person Accounts are **not** enabled (v2.3: enabling them cannot be undone, and the standard model is enough). Every borrower is a normal **Account with one borrower Contact**:
+
+| Account record type | Used for | Account Name | Borrower Contact (Borrower__c) |
+| --- | --- | --- | --- |
+| Individual Borrower | Personal, Home, Auto loans | The person's full name | The person |
+| Business Borrower | Small-Business loans | The business name | The director who applies |
+
+One Account per borrower also avoids account data skew for portal users. Borrower fields are custom fields on **Contact**:
 
 | Field | Type | Notes |
 | --- | --- | --- |
-| PAN\_\_c | Text(10), Unique, External ID | BR-02; also a **Duplicate Rule** (new) so the user sees a friendly message; Data Cloud match key |
+| PAN\_\_c | Text(10), Unique, External ID | BR-02; also a **Duplicate Rule** on Contact so the user sees a friendly message; Data Cloud match key |
 | Birthdate | Standard | Age at maturity |
 | Employment\_Type\_\_c | Picklist | Salaried, Self-Employed, Business |
 | Monthly\_Income\_\_c | Currency |  |
@@ -399,7 +429,6 @@ erDiagram
 | Repayment\_Score\_\_c | Number | Written back from Data Cloud |
 | Pre\_Approved\_\_c | Checkbox | Written back from Data Cloud |
 
-One Account per borrower (individual or business). This avoids account data skew for portal users.
 
 ### 10.2 Loan\_Product\_\_c
 
@@ -539,6 +568,27 @@ Event\_Type\_\_c, Record\_Id\_\_c, Loan\_Number\_\_c, Amount\_\_c, Payload\_\_c 
 
 One record each for Credit\_Bureau, KYC, Payout, SMS, Core\_Banking: Named\_Credential\_\_c, Path\_\_c, Timeout\_Ms\_\_c, Max\_Retries\_\_c, Mock\_Response\_\_c. **Active\_\_c removed**: on/off and mock mode live only in LAMS\_Settings\_\_c (§12), so each integration has one switch.
 
+### 10.12 Lead and Campaign (**new** v2.2)
+
+**Lead** (standard object) — custom fields:
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| Loan_Product__c | Lookup(Loan_Product__c) | Product of interest |
+| Requested_Amount__c | Currency | |
+| Requested_Tenure__c | Number(3,0) | Months |
+| PAN__c | Text(10) | Not unique on Lead (duplicates are flagged, BR-86); maps to Contact.PAN__c on conversion |
+| Employment_Type__c, Monthly_Income__c, Preferred_Language__c | As on Contact | Mapped to Contact on conversion |
+| Consent__c | Checkbox | Required for callback requests |
+| Unqualified_Reason__c | Picklist | Not Interested, Not Eligible, Unreachable, Duplicate, Other |
+| First_Contacted_At__c | Date/Time | Stamped when Status first becomes Contacted (time to first contact, BR-89) |
+
+Lead Status values: New, Contacted, Qualified, Unqualified, Converted (the converted status). LeadSource values: Website, Portal Callback, Branch Walk-in, Partner Referral, Campaign. Standard fields used: Name, Company (required; for an individual it is set to the person's full name), MobilePhone, Email, City. Borrower_Type__c (Individual, Business; proposed) decides the converted Account's record type.
+
+**Campaign** (standard object) — Type values: Pre-approved Top-up, Seasonal Offer, Partner Drive. Campaign Member statuses: Sent, Responded, Applied.
+
+**Loan_Application__c.Campaign__c** — Lookup(Campaign), set from the lead's campaign on conversion or chosen by the officer. Salesforce's campaign influence model is built on Opportunities, which LAMS does not use, so campaign results are reported through this lookup.
+
 ## 11. Security design
 
 Access starts closed (Private OWDs) and opens through role hierarchy, one criteria rule, Apex managed sharing and a portal sharing set. Delivers BR-59, BR-70 – BR-74.
@@ -547,7 +597,10 @@ Access starts closed (Private OWDs) and opens through role hierarchy, one criter
 
 | Object | OWD | Note |
 | --- | --- | --- |
-| Account, Contact | Private |  |
+| Account | Private |  |
+| Contact | Controlled by Parent (**changed** v2.2) | The borrower Contact follows its Account; the portal sharing set's Account row covers it |
+| Lead | Private (**new** v2.2) | Opened by queues and assignment rules |
+| Campaign | Public Read Only (**new** v2.2) | |
 | Loan\_Product\_\_c | Public Read Only |  |
 | Loan\_Application\_\_c, Loan\_\_c | Private |  |
 | Case | Private (**new**) | Opened by assignment rules and the sharing set |
@@ -562,11 +615,13 @@ Access starts closed (Private OWDs) and opens through role hierarchy, one criter
 
 | Permission set | Grants |
 | --- | --- |
-| LAMS\_Loan\_Officer | Create/edit Application and Application Document; read Product, Loan |
+| LAMS\_Loan\_Officer | Create/edit Application and Application Document; read Product, Loan (Lead and Campaign access live in LAMS\_Sales\_Access, v2.3) |
 | LAMS\_Credit | Read/edit Application decision fields; read all LAMS objects; edit Loan\_Product\_\_c; custom permissions LAMS\_Override\_Credit\_Check and LAMS\_Waive\_Late\_Fee |
-| LAMS\_Policy\_Admin (**new**) | Custom permission LAMS\_Manage\_Settings; View All on Integration\_Log\_\_c |
+| LAMS\_Policy\_Admin (**new**) | Custom permission LAMS\_Manage\_Settings; View All on Integration\_Log\_\_c; v2.2 adds create/edit Campaign (the user also needs the Marketing User checkbox) |
 | LAMS\_Operations | Edit Loan\_\_c; create Payment\_\_c; read Application; **View Encrypted Data** for Payout\_Account\_\_c |
 | LAMS\_Borrower\_Portal | Create/read own Application and Application Document; read own Loan, EMI, Payment; create Case |
+| LAMS\_Sales\_Access (**new** v2.3) | Lead create/edit, Convert Leads, Campaign read. Assigned directly to full-licence Loan Officers only |
+| LAMS\_Case\_Access (**new** v2.3) | Case create/read/edit for service requests. Assigned directly to full-licence Operations users (and the admin) |
 | LAMS\_Reports | Run reports and dashboards |
 | LAMS\_Agentforce\_User | Use the employee agent |
 | LAMS\_Integration | API only; create Application, Payment, Integration\_Log; **View All on Loan\_\_c (read)** so the payment callback can find any loan; v2.1 adds Contact/Account create and read (borrower upsert by PAN), Loan\_Product\_\_c read, View All on Loan\_Application\_\_c (read, for GET status after reassignment) and Apex class access to the three API classes |
@@ -590,7 +645,7 @@ Access starts closed (Private OWDs) and opens through role hierarchy, one criter
 - **Owner assignment (new, BR-07):** at submission, portal and partner applications are reassigned to the active Loan Officer with the fewest open applications. A queue is not used because role hierarchy does not open queue-owned records to managers.
 - Criteria sharing rule: applications with Status Approved or Offer Accepted → Operations Officer role, Read Only.
 - Apex managed sharing: Loan\_\_c shared Read/Write with Assigned\_Officer\_\_c (reason Assigned\_Officer); the old share is removed on reassignment.
-- Portal sharing set: Loan\_Application\_\_c.Borrower\_\_c, Loan\_\_c.Borrower\_\_c and Case.ContactId = User.ContactId, plus the user's own Contact and Account (v2.1). Child records follow their parent.
+- Portal sharing set: Loan\_Application\_\_c.Borrower\_\_c, Loan\_\_c.Borrower\_\_c and Case.ContactId = User.ContactId, plus the user's own Account (User.AccountId), which also covers its Contact (under Controlled by Parent a Contact cannot be a sharing-set target). Child records follow their parent.
 
 **Field-level security:** PAN\_\_c, Monthly\_Income\_\_c, Credit\_Score\_\_c hidden from Operations (BR-71). Payout\_Account\_\_c is encrypted and masked (BR-72).
 
@@ -697,6 +752,20 @@ The biggest change from v1: one Apex router, **ApplicationRouter**, decides the 
 - Assignment rule: Request\_Type = Dispute → Credit Managers queue; others → Operations queue.
 - Escalation rule: not closed within 2 business days → reassign to the Credit Head and email them.
 
+### 13.6 Sales automation (**new** v2.2)
+
+| Item | Type | Does | BR |
+| --- | --- | --- | --- |
+| Lead queues | Queues | Leads – Retail (Personal, Auto) and Leads – Secured (Home, Business) | BR-84 |
+| Lead assignment rule | Assignment rule | By product, then city, to a queue or a named Loan Officer; sends the assignment email | BR-84 |
+| Lead Path | Path with guidance | Key fields and tips per Lead Status | BR-85 |
+| Lead duplicate rules | Matching + duplicate rules | Lead vs Lead and Lead vs Contact on PAN or mobile; alert, allow save with a reason | BR-86 |
+| callbackRequest | LWC (portal, guest-accessible) + CallbackRequestController | Creates a Lead with LeadSource = Portal Callback; consent required; simple rate limit per mobile | BR-83 |
+| Web-to-Lead form | Standard Web-to-Lead | Enquiry form for a public website, LeadSource = Website | BR-83 |
+| Lead Contacted Stamp | Record-triggered flow on Lead | Stamps First_Contacted_At__c the first time Status = Contacted | BR-89 |
+| Pre-approved Campaign Membership | Record-triggered flow on Contact (Pre_Approved__c → true) | Adds the borrower to the active Pre-approved Top-up campaign once (status Sent) | BR-88 |
+| Campaign Applied | Part of Application Submitted flow | If Campaign__c is set, sets that borrower's campaign member status to Applied | BR-88 |
+
 ## 14. Apex design
 
 One trigger per object, logic in handler and service classes, all bulk-safe at 200 records (NFR-01, NFR-09).
@@ -732,6 +801,8 @@ One trigger per object, logic in handler and service classes, all bulk-safe at 2
 | LamsSettingsController (**new**) | LWC controller | Read/update org-default settings; checks LAMS\_Manage\_Settings | BR-74 |
 | Agent actions | Invocable | GetApplicationStatus, GetMissingDocuments, GetEmiSchedule, CreateServiceRequest, SummariseApplication; all run with sharing as the user | BR-75 – BR-77 |
 | LetterController | VF controller | Data for offer, agreement and closure letters | BR-28, BR-29, BR-46 |
+| LeadTrigger + LeadConversionService (**new** v2.2) | Trigger + handler | After a lead converts (IsConverted becomes true), creates a Draft application for the converted Contact with product, amount, tenure, Channel = Branch and Campaign__c from the lead's most recent campaign membership; no opportunity | BR-87, BR-88 |
+| CallbackRequestController (**new** v2.2) | LWC controller (without sharing, guest) | Validates input, checks consent and a per-mobile rate limit, inserts the Lead and runs assignment rules | BR-83, BR-84 |
 
 **Tests:** one test class per class; ≥ 90% coverage; 200-record bulk tests; toggle on and off; HttpCalloutMock and WebServiceMock for every callout; a TestDataFactory for products, borrowers and applications.
 
@@ -751,7 +822,7 @@ One trigger per object, logic in handler and service classes, all bulk-safe at 2
 | Page layouts | Page layouts | One per application record type, plus Loan and Case |  |
 | LAMS | Lightning app | Tabs: Applications, Loans, Products, Cases, Integration Logs, Reports, Dashboards; utility bar EMI calculator |  |
 
-**Portal (Experience Cloud):** site “LAMS Borrower Portal” on the Aura Customer Service template, chosen so the Aura theme layout has a real use. Pages: Home (EMI calculator), Apply (New Loan Application flow), My Applications (status, documents, Respond to Offer, Withdraw), My Loans (schedule, payments, outstanding), Service Requests, Borrower Assistant. Self-registration creates the Contact and Account and checks PAN for duplicates. When Portal\_Enabled\_\_c is off, the Home page shows a maintenance message and the flows exit (BR-61). LWR is the newer template; Aura is kept here on purpose for learning.
+**Portal (Experience Cloud):** site “LAMS Borrower Portal” on the Aura Customer Service template, chosen so the Aura theme layout has a real use. Pages: Home (EMI calculator), Apply (New Loan Application flow), My Applications (status, documents, Respond to Offer, Withdraw), My Loans (schedule, payments, outstanding), Service Requests, Borrower Assistant. Self-registration creates an Individual Borrower Account and its Contact and checks PAN for duplicates (business directors are set up by staff). When Portal\_Enabled\_\_c is off, the Home page shows a maintenance message and the flows exit (BR-61). LWR is the newer template; Aura is kept here on purpose for learning.
 
 **Email templates (English and Hindi):** Application Submitted · Document Rejected · Application Approved (Offer) · Application Rejected · Offer Expiring (**new**) · Loan Disbursed · EMI Due · EMI Overdue · Loan Closed (**new**) · Prepayment Quote (**new**).
 
@@ -806,6 +877,8 @@ Prompt template: Application Summary (Flex), grounded on the application, its do
 | Loans with Instalments | Loan\_\_c → EMI\_Instalment\_\_c |
 | Loans with Payments | Loan\_\_c → Payment\_\_c |
 | Integration Logs (**new**) | Integration\_Log\_\_c |
+| Leads with Campaign (**new** v2.2) | Lead → Campaign Member |
+| Applications with Campaign (**new** v2.2) | Loan\_Application\_\_c (with Campaign\_\_c) → Loan\_\_c |
 
 **Dashboards**
 
@@ -814,6 +887,7 @@ Prompt template: Application Summary (Flex), grounded on the application, its do
 | Origination | Applications by status and product, approval rate, rejection reasons, average days to decision, manual overrides | Dynamic: each Credit Manager sees their team | BR-62 |
 | Portfolio | Disbursed amount, outstanding principal, overdue by bucket, collected vs due this month | Dynamic: each Operations Officer sees their loans | BR-63 |
 | Integrations | Calls by integration and status, failures, retries, Gave Up | Credit Head | BR-64 |
+| Sales (**new** v2.2) | Leads by source and status, conversion rate, time to first contact, applications and disbursed amount by campaign | Credit Head | BR-89 |
 
 Developer Edition allows only a few dynamic dashboards; two are used here. Confirm the limit in your org.
 
@@ -827,8 +901,24 @@ Build in one Developer Edition org that includes Agentforce and Data Cloud, kept
 - [ ] Note the limits that matter: data storage, Customer Community Login licences, dynamic dashboards, orchestration runs, AI credits.
 - [ ] Enable Digital Experiences, Translation Workbench (Hindi), Change Data Capture (Loan\_\_c, Payment\_\_c).
 - [ ] Create Business Hours “LAMS IST”.
-- [ ] Create users: 2 Loan Officers, 1 Credit Manager, 1 Credit Head, 2 Operations Officers, 1 Integration User; 2 portal borrowers.
+- [ ] Set **Company Information**: default time zone Asia/Kolkata, locale English (India), currency INR.
+- [ ] Create users by the licence plan below.
 - [ ] Set up public mock endpoints (§16).
+
+**Licence plan (dev org `Lams`, v2.3).** The org has 2 free full Salesforce licences, 6 Salesforce Platform, 1 Salesforce Integration and 5 Customer Community Login. A Platform licence has no Lead, Campaign or Case access, and each profile belongs to one licence type.
+
+| User | Licence | Profile | Role / permission set group |
+| --- | --- | --- | --- |
+| Developer (existing admin) | Salesforce | System Administrator | Credit Head role; LAMS Credit Head group; Marketing User. **Acts as the Credit Head** |
+| Loan Officer 1 | Salesforce | LAMS Internal User | Loan Officer; works leads |
+| Operations Officer 1 | Salesforce | LAMS Internal User | Operations Officer; works cases |
+| Credit Manager | Salesforce Platform | LAMS Internal Platform User | Credit Manager |
+| Loan Officer 2 | Salesforce Platform | LAMS Internal Platform User | Loan Officer; no leads |
+| Operations Officer 2 | Salesforce Platform | LAMS Internal Platform User | Operations Officer; loans only |
+| Integration User | Salesforce Integration | Minimum Access – API Only Integrations | LAMS_Integration |
+| 2 borrowers | Customer Community Login | LAMS Borrower | — |
+
+Consequences: the admin bypasses sharing and field-level security, so security acceptance tests (AC-13, AC-14) run as the other users. Dispute cases route to the Credit Head (admin) in this org because the Credit Manager holds a Platform licence; with a full licence they would go to the Credit Managers queue (BR-58).
 
 **Source control and deployment**
 
@@ -856,7 +946,7 @@ Thirteen steps, each ending with a check before the next starts. Write each clas
 7. **Documents and approval:** documentChecklist, Document Verified flow, ApplicationRouter, Secured Loan Review, Loan Approval, Respond to Offer, Withdraw, VF letters. *Done when:* AC-01, AC-02, AC-03 pass.
 8. **Servicing:** Offer Accepted, LoanSharingService, Disburse Loan + PayoutService, EmiScheduleService, PaymentAllocationService, LoanOverdueBatch, Waive Late Fee, Prepayment Quote, Send Notification, SmsService, Daily Reminders. *Done when:* AC-07 to AC-10 and AC-12 pass; AC-11 up to the event (its task is checked in step 9).
 9. **Events and APIs:** Loan\_Event\_\_e + publisher, Loan Event Handler, LoanEventTrigger, CDC trigger, CoreBankingSyncQueueable, LoanApplicationApi, PaymentCallbackApi, LoanStatusWebService, IntegrationRetryBatch. *Done when:* a Postman collection runs every inbound call and a failed outbound call retries to Gave Up.
-10. **Portal:** Aura site, theme layout, pages, Cases with assignment and escalation rules. *Done when:* a borrower applies, uploads, accepts and raises a request.
+10. **Portal, then Sales (M14):** Aura site, theme layout, pages, Cases with assignment and escalation rules; then leads, lead conversion and campaigns. *Done when:* a borrower applies, uploads, accepts and raises a request; AC-17 and AC-18 pass.
 11. **Reports and dashboards.** *Done when:* each dynamic dashboard shows different data for two users.
 12. **Agentforce, then Data Cloud.** *Done when:* AC-15 passes and a clean payer gets Pre\_Approved\_\_c.
 13. **End to end:** AC-16, a Personal Loan and a Home Loan from Draft to Closed; coverage ≥ 90%; README with screenshots and a demo video.
@@ -875,7 +965,8 @@ Every Salesforce capability on your learning list maps to at least one business 
 | Custom metadata | Integration\_Setting\_\_mdt | BR-82 |
 | Custom settings | LAMS\_Settings\_\_c | BR-79 – BR-81 |
 | Custom labels + translation | All messages, Hindi | BR-54 |
-| Duplicate rules | Contact PAN | BR-02 |
+| Duplicate rules | Contact PAN; Lead PAN and mobile | BR-02, BR-86 |
+| Account record types | Individual Borrower, Business Borrower | A1, BR-87 |
 | Page layouts, Lightning pages, Dynamic Forms | Per record type | BR-05 |
 | Apps, tabs, utility bar | LAMS app | BR-04 |
 | Apex classes and triggers | §14 | Most |
@@ -908,6 +999,8 @@ Every Salesforce capability on your learning list maps to at least one business 
 | Experience Cloud | Borrower portal | BR-59 – BR-61 |
 | Agentforce | Two agents, prompt template | BR-75 – BR-77 |
 | Data Cloud | Unified profile, insights, segments | BR-78 |
+| Leads, Web-to-Lead, lead assignment rules, Path, lead conversion (Sales Cloud) | §13.6, LeadConversionService | BR-83 – BR-87 |
+| Campaigns, campaign members (Sales Cloud) | §10.12, §13.6 | BR-88, BR-89 |
 | Feature toggles | Apex, Flow, validation rules | BR-79, BR-80 |
 
 ## Appendix A: changes from v1 (Nov 10, 2026)
@@ -1015,3 +1108,31 @@ Writing the 93 work items exposed gaps in v2. Items marked *inline* were also fi
 - Hindi rendering in Visualforce PDFs and Hindi replies from Agentforce (BR-54) are not guaranteed.
 - Setup Audit Trail may not record setting changes saved through Apex (LAMS-030 verifies this).
 - Hindi texts drafted in the work items need a native speaker's review (dependency D4).
+
+
+## Appendix C: v2.2 sales module and Person Accounts (Nov 21, 2026)
+
+| # | Change | Why | Where |
+| --- | --- | --- | --- |
+| C1 | ~~Person Accounts for individual borrowers~~ — reversed in v2.3 (D1) | | |
+| C2 | Contact OWD becomes Controlled by Parent | Kept in v2.3 as a design choice | §11 |
+| C3 | New Sales module: leads, assignment, Path, duplicate checks, conversion into a Draft application, campaigns | The process before an application was missing: callback requests had no follow-up and pre-approved borrowers had no offer | §6.17, §10.12, §13.6, §14 |
+| C4 | Lead conversion creates no Opportunity | The loan application already plays that role | BR-87 |
+| C5 | Campaign results reported through Loan_Application__c.Campaign__c | Standard campaign influence is Opportunity-based | §10.12 |
+| C6 | New milestone M14 (items LAMS-095 – LAMS-100), built after M10; Account record types are LAMS-094 in M02 | Keeps existing item numbers stable | Milestones |
+
+
+## Appendix D: v2.3 org decisions (Nov 21, 2026)
+
+| # | Decision | Why | Where |
+| --- | --- | --- | --- |
+| D1 | No Person Accounts. Individuals are Accounts (record type Individual Borrower, Name = full name) with one Contact; businesses are Business Borrower Accounts with a director Contact | Enabling Person Accounts cannot be undone; the standard model needs no org change | §10.1, A1, BR-87, LAMS-094 |
+| D2 | Lead.Company holds the person's name for individuals; Borrower_Type__c sets the converted Account's record type | Company is required on Lead without Person Accounts | §10.12, LAMS-095, LAMS-098 |
+| D3 | Licence plan with the admin acting as Credit Head and three Platform-licence users | Only 2 free full licences | §19, LAMS-023, LAMS-029 |
+| D4 | Dispute cases go to the Credit Head in this org | The Credit Manager has a Platform licence (no Case access) | §19, LAMS-078 |
+| D6 | Lead, Campaign and Case permissions move out of LAMS_Loan_Officer, LAMS_Credit and LAMS_Operations into LAMS_Sales_Access and LAMS_Case_Access, assigned directly (not through groups) | A Platform-licence user cannot be assigned a permission set or group that contains Lead or Case permissions | §11, LAMS-024, LAMS-025, LAMS-029 |
+| D7 | Callback form: LAMS_Settings__c.Callback_Rate_Limit__c (default 3 requests per mobile per day); the portal's Request a Callback page is the only public page | Guest users must not flood leads; everything else stays behind login | §12, LAMS-097 |
+| D8 | Lead tracking fields: Borrower_Type__c, Source_Lead_Id__c (unique, on the application, makes conversion idempotent), Web_Product_Code__c (Web-to-Lead), formulas for overdue first contact, conversion count and hours to first contact. First contact is stamped on the first status after New | Needed to meet BR-84, BR-87 and BR-89 | §10.12, LAMS-095 – LAMS-100 |
+| D9 | Duplicate leads are resolved by marking the lead Unqualified – Duplicate or converting it into the existing borrower (no separate reason field) | BR-86 asked for a reason on save, which duplicate rules cannot capture | BR-86, LAMS-096 |
+| D10 | Application_Submitted stamps Campaign__c for borrowers in an active campaign who apply without a lead | AC-18 needs campaign credit for applications that did not come from a lead | LAMS-099 |
+| D5 | Org facts: Developer Edition, API 68.0, Agentforce, Data Cloud starter and Messaging licences, 5 MB data, 20 MB files, 15 single emails a day; email deliverability stays "System email only" until notifications are tested | Recorded in LAMS-002 | §8 C1 |

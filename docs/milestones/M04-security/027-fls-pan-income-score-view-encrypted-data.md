@@ -24,6 +24,8 @@ PAN, income and credit score are invisible to Operations on every page, list vie
 
 The rows marked (p) are proposed. Risk grade is a band of the score, EMI-to-income is a ratio that reveals income, and eligibility notes quote both. Hiding them stops BR-71 leaking through derived fields.
 
+The Lead copies of PAN and income (LAMS-095) need no rule here, because Operations has no Lead access at all (LAMS-024).
+
 **Encryption and masking (BR-72):** Payout_Account__c is a Text (Encrypted) field from LAMS-012. Confirm Mask Type *Last Four Characters Clear* and Mask Character *X* (proposed if LAMS-012 chose otherwise). **View Encrypted Data** is only in LAMS_Operations (LAMS-024), so everyone else sees `XXXXXXXX1234`.
 
 **Automated check (proposed): `LamsFieldSecurityTest`**

@@ -32,7 +32,7 @@ A 5-minute video shows LAMS working end to end. The repository is then made publ
 | 2:00 – 2:45 | Home Loan | Secured Loan Review stages; Credit Manager reduces the amount; waits for Credit Head; two-step approval history | BR-20, BR-25, AC-03 |
 | 2:45 – 3:25 | Servicing | Disburse → EMI schedule; Postman payment callback, the same reference again is rejected; prepayment quote → loan Closed; closure letter | BR-37, BR-41, BR-44, AC-10 |
 | 3:25 – 4:05 | AI | Borrower Assistant: status, missing documents, then "approve my loan" → declines and offers a hand-off; Loan Officer Assistant summary with risk flags | BR-75 – BR-77, AC-15 |
-| 4:05 – 4:30 | Data Cloud | Unified profile; Contact with Repayment_Score__c and Pre_Approved__c; early-risk Task | BR-78 |
+| 4:05 – 4:30 | Data Cloud | Unified profile; the borrower's Contact with Repayment_Score__c and Pre_Approved__c; it joins the top-up campaign (M14); early-risk Task | BR-78, BR-88 |
 | 4:30 – 4:50 | Control | lamsSettings: switch auto-approve off and show the next application going to the Credit Managers; dashboards | BR-79, BR-80, AC-02, BR-62 – BR-64 |
 | 4:50 – 5:00 | Close | Coverage figure, CI badge, repo URL | NFR-10 |
 
@@ -40,7 +40,7 @@ A 5-minute video shows LAMS working end to end. The repository is then made publ
 
 | # | Check | How |
 | --- | --- | --- |
-| 1 | No secrets in the current tree | Search for `force://`, `sfdxAuthUrl`, `client_secret`, `clientSecret`, `password`, `Bearer `, `token`. Check `postman/` environment files (export them with secret values blank) and `docs/ORG_NOTES.md` (no passwords, security tokens or personal usernames) |
+| 1 | No secrets in the current tree | Search for `force://`, `sfdxAuthUrl`, `client_secret`, `clientSecret`, `password`, `Bearer `, `token`. Check `postman/` environment files (export them with secret values blank) and [ORG_NOTES.md](../M01-org-and-repo/ORG_NOTES.md) (no passwords, security tokens or personal usernames) |
 | 2 | No secrets in history | Run a secret scanner over all commits, for example `gitleaks` (`gitleaks git .` in current versions, or `gitleaks detect --source . --log-opts="--all"` in older ones), or `git log -p --all` piped to the same search |
 | 3 | If anything was ever committed | **Rotate it first**: revoke the CI auth URL (log out the CLI session / reset the connected or external client app) and regenerate client secrets and External Credential values. Then remove it from history (`git filter-repo`) or publish a fresh repository |
 | 4 | Ignored files | `.sf/`, `.sfdx/`, `.env`, `node_modules/`, `coverage/`, `test-results/` are in `.gitignore` and not tracked (`git ls-files` shows none of them) |

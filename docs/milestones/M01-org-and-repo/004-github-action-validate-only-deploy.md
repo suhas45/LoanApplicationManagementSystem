@@ -2,7 +2,7 @@
 
 **Milestone:** [M01 – Org and repo](README.md) · **Size:** M (2–5h) · **Delivers:** §19
 
-**Depends on:** LAMS-001 (GitHub repo), LAMS-003 (`lams-dev` authorised in the CLI)
+**Depends on:** LAMS-001 (GitHub repo), LAMS-003 (`Lams` authorised in the CLI)
 
 ## Goal
 
@@ -14,7 +14,7 @@ Every push and every pull request to `main` is checked by a validate-only deploy
 
 | Name | Value |
 | --- | --- |
-| `SFDX_AUTH_URL` (proposed name) | The `sfdxAuthUrl` (`force://…`) of `lams-dev`, from `sf org display --verbose --json` |
+| `SFDX_AUTH_URL` (proposed name) | The `sfdxAuthUrl` (`force://…`) of `Lams`, from `sf org display --verbose --json` |
 
 **File `.github/workflows/validate.yml`**
 
@@ -88,7 +88,7 @@ The `if ls … *.cls` switch means you never edit the workflow when LAMS-019 add
 
 1. Branch: `git checkout -b chore/LAMS-004-ci-validate`.
 2. Get the auth URL and store it as a secret without writing it to disk (PowerShell, GitHub CLI logged in):
-   `(sf org display --target-org lams-dev --verbose --json | ConvertFrom-Json).result.sfdxAuthUrl | gh secret set SFDX_AUTH_URL`
+   `(sf org display --target-org Lams --verbose --json | ConvertFrom-Json).result.sfdxAuthUrl | gh secret set SFDX_AUTH_URL`
    Or copy it into GitHub → Settings → Secrets and variables → Actions → *New repository secret*.
 3. Create `.github/workflows/validate.yml` with the content above.
 4. Commit and push: `ci(github): validate-only deploy workflow [LAMS-004]`, then `git push -u LAMS chore/LAMS-004-ci-validate`.

@@ -45,7 +45,7 @@ All text comes from custom labels (LAMS-021) or field describe, with no literals
 
 | Test | Assert |
 | --- | --- |
-| `creditHeadReadsSettings` | User with LAMS_Policy_Admin gets all 21 fields with the stored values |
+| `creditHeadReadsSettings` | User with LAMS_Policy_Admin gets all 22 fields with the stored values |
 | `creditHeadTogglesOnAndOff` | `saveSettings({'Auto_Approve_Enabled__c' => true})` → org default true and `FeatureToggle.isAutoApproveEnabled()` true. Then false → false |
 | `creditHeadUpdatesThreshold` | `Offer_Validity_Days__c` 15 → 10 is saved |
 | `createsOrgDefaultWhenMissing` | With no row, a save creates one with `SetupOwnerId` = org Id |
@@ -65,7 +65,7 @@ Create the users and the `PermissionSetAssignment` for LAMS_Policy_Admin in `@Te
 4. Run: `sf apex run test --class-names LamsSettingsControllerTest --code-coverage --result-format human --wait 10`. Optionally run `npm run test:unit` for Jest.
 5. Create the App Page and tab in Lightning App Builder, add the tab to the LAMS app, and update LAMS_Policy_Admin.
 6. Retrieve: `sf project retrieve start --metadata FlexiPage:LAMS_Settings CustomTab:LAMS_Settings CustomApplication:LAMS PermissionSet:LAMS_Policy_Admin ApexClass:LamsSettingsController`
-7. Demo: log in as Vikram Rao (Credit Head), turn Auto Approve on and save. Query `SELECT Auto_Approve_Enabled__c FROM LAMS_Settings__c`. Turn it off again.
+7. Demo: as the admin (who acts as Credit Head in the `Lams` org, LAMS-029), turn Auto Approve on and save. Query `SELECT Auto_Approve_Enabled__c FROM LAMS_Settings__c`. Turn it off again.
 8. Commit: `feat(lwc): lamsSettings page and LamsSettingsController with tests [LAMS-030]`.
 
 ## Learn
@@ -77,7 +77,7 @@ Create the users and the `PermissionSetAssignment` for LAMS_Policy_Admin in `@Te
 
 ## Done when
 
-- [ ] Logged in as the Credit Head, the LAMS Settings tab shows 13 toggles and 8 thresholds with their labels and help text, and a saved change is visible in `LAMS_Settings__c` (§20 step 3)
+- [ ] Logged in as the Credit Head, the LAMS Settings tab shows 13 toggles and 9 thresholds (including Callback_Rate_Limit__c, used by LAMS-097) with their labels and help text, and a saved change is visible in `LAMS_Settings__c` (§20 step 3)
 - [ ] A Credit Manager and an Operations Officer don't see the tab, and calling the controller without LAMS_Manage_Settings returns the `LAMS_Settings_No_Permission` message
 - [ ] `LamsSettingsControllerTest` covers toggle on and off, threshold change, missing row, no permission, unknown field and negative value; coverage of the class ≥ 90%
 - [ ] No hardcoded user-facing text in the LWC or the class
