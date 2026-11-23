@@ -12,9 +12,11 @@ Facts about the development org. First checked on 2026-11-21; completed for LAMS
 | My Domain URL | `https://orgfarm-3959145e9d-dev-ed.develop.my.salesforce.com` |
 | Admin username | `suhas.vaddeman@agentforce.com` |
 | Sign-up (org created) | 2026-11-02 |
-| CLI alias | `Lams` (default `target-org` for this project, local config in `.sf/config.json`) |
-| API version | 68.0 (matches `sourceApiVersion` in `sfdx-project.json`) |
-| CLI version | `@salesforce/cli/2.146.3` |
+| CLI alias | `Lams` (default `target-org` for this project, **Local** config in `.sf/config.json`, git-ignored). Checked 2026-11-23 (LAMS-003) |
+| Login URL | `https://login.salesforce.com` (matches `sfdcLoginUrl` in `sfdx-project.json`) |
+| API version | 68.0 in the org (`sf org display`) = `sourceApiVersion` in `sfdx-project.json`. `org-api-version` is not set and not needed: the CLI uses the org's version |
+| CLI version | `@salesforce/cli/2.159.7` (Node 26.13.0), updated 2026-11-23 with `sf update stable` |
+| CLI install | Windows installer at `C:\Program Files\sf` (self-updates into `%LOCALAPPDATA%\sf\client`). Update with `sf update`, **not** `npm install -g`; an npm copy would sit later on PATH and never be used |
 | Org default time zone / locale | America/Los_Angeles, en_US. **Change to Asia/Kolkata, English (India), INR** (LAMS-005) |
 | Developer user time zone / locale | Asia/Kolkata, en_IN |
 | Business hours | Only `Default` exists; "LAMS IST" is created in LAMS-005 |

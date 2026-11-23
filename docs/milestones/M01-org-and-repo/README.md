@@ -12,7 +12,7 @@ Tick items here; the linked file says what to build.
 
 - [x] [LAMS-001](001-git-init-connect-github-repo-first-commit-and.md) · `git init`, connect GitHub repo, first commit and push, backlog checklist files · `S` — done 2026-11-21
 - [x] [LAMS-002](002-sign-up-for-the-developer-edition-with.md) · Sign up for the Developer Edition with Agentforce and Data Cloud; confirm Experience Cloud, Orchestration, Messaging; record limits in `ORG_NOTES.md` · `S` — done 2026-11-23
-- [ ] [LAMS-003](003-authorise-the-org-in-the-cli-set-default-org.md) · Authorise the org in the CLI; set default org and API version · `S`
+- [x] [LAMS-003](003-authorise-the-org-in-the-cli-set-default-org.md) · Authorise the org in the CLI; set default org and API version · `S` — done 2026-11-23
 - [ ] [LAMS-004](004-github-action-validate-only-deploy.md) · GitHub Action: validate-only deploy + RunLocalTests on every push (org auth URL as a repo secret) · `M`
 - [ ] [LAMS-005](005-enable-digital-experiences-translation.md) · Enable Digital Experiences, Translation Workbench (Hindi), Business Hours "LAMS IST" · `S`
 - [ ] [LAMS-006](006-create-public-mock-endpoints-beeceptor-postman.md) · Create public mock endpoints (Beeceptor/Postman) with success and failure responses · `M`
