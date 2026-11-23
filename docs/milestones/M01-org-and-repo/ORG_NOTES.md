@@ -1,58 +1,86 @@
 # Org notes – `Lams`
 
-Facts about the development org, checked on 2026-11-21 with read-only queries. No passwords, tokens or auth URLs belong in this file.
+Facts about the development org. First checked on 2026-11-21; completed for LAMS-002 on 2026-11-23 with read-only CLI queries, a settings retrieve and one dry-run deploy (nothing saved). No passwords, tokens or auth URLs belong in this file.
 
-## Org
+## 1. Org
 
 | Item | Value |
 | --- | --- |
-| CLI alias | `Lams` (default `target-org` for this project, set in `.sf/config.json`) |
-| Edition | Developer Edition (not a sandbox) |
+| Edition | Developer Edition with Agentforce and Data Cloud (not a sandbox, no trial expiry) |
+| Org ID | `00Dak00001Pki8nEAB` |
 | Instance | USA840 |
-| API version | 68.0 (matches `sfdx-project.json`) |
-| Org default time zone / locale | America/Los_Angeles, en_US — **change to Asia/Kolkata, English (India), INR** (LAMS-005) |
+| My Domain URL | `https://orgfarm-3959145e9d-dev-ed.develop.my.salesforce.com` |
+| Admin username | `suhas.vaddeman@agentforce.com` |
+| Sign-up (org created) | 2026-11-02 |
+| CLI alias | `Lams` (default `target-org` for this project, local config in `.sf/config.json`) |
+| API version | 68.0 (matches `sourceApiVersion` in `sfdx-project.json`) |
+| CLI version | `@salesforce/cli/2.146.3` |
+| Org default time zone / locale | America/Los_Angeles, en_US. **Change to Asia/Kolkata, English (India), INR** (LAMS-005) |
 | Developer user time zone / locale | Asia/Kolkata, en_IN |
+| Business hours | Only `Default` exists; "LAMS IST" is created in LAMS-005 |
 | Person Accounts | Not enabled, and will not be (BRD Appendix D1) |
 
 Other orgs authorised on this machine (inkarp-DEV, inkarp-SIT, inkarp-UAT) are client sandboxes. **Never** pass `--target-org` with one of them from this project.
 
-## Features present
+## 2. Features
 
-| Feature | Evidence | Needed for |
-| --- | --- | --- |
-| Agentforce | Agentforce Service Agent Builder/User, Prompt Templates, Copilot permission set licences | M12 |
-| Data Cloud | Data Cloud starter (`GenieDataPlatformStarterPsl`), segments and activations licence | M12 |
-| Messaging for In-App and Web | Embedded Service Messaging User licences (11) | Borrower Assistant (LAMS-087) |
-| Experience Cloud | 5 Customer Community Login licences | M10 portal |
-| Flow Orchestration, Translation Workbench, Digital Experiences | Check in Setup during LAMS-005 | M07, M03, M10 |
-
-## Licences
-
-| Licence | Total | Used | Free |
+| Feature | Present? | Evidence (2026-11-23) | Needed by |
 | --- | --- | --- | --- |
-| Salesforce | 4 | 2 (developer admin, "OrgFarm EPIC" admin) | 2 |
-| Salesforce Platform | 6 | 0 | 6 |
-| Salesforce Integration | 1 | 0 | 1 |
-| Customer Community Login | 5 | 0 | 5 |
+| Experience Cloud | **Yes, licensed, not enabled** | 5 Customer Community Login licences; `CommunitiesSettings.enableNetworksEnabled = false`; no `Network` object yet. Enabled in LAMS-005 | M10 portal (BR-59 – BR-61) |
+| Flow Orchestration | **Yes** | `FlowOrchestrationInstance` / `FlowOrchestrationWorkItem` objects exist; flow `ProcessType` offers `Orchestrator`; entitlement *Maximum Orchestration Runs* = 600 per year | LAMS-050 (BR-20) |
+| Messaging for In-App and Web | **Yes (capped)** | `MessagingChannel`, `MessagingSession`, `EmbeddedServiceDetail` objects exist; Enhanced Chat User (11) and Messaging User (6) licences; entitlement *Maximum Total Conversations for Messaging* = **10, once** | LAMS-087 Borrower Assistant |
+| Agentforce | **Yes** | `EinsteinGptSettings.enableEinsteinGptPlatform = true`; Agentforce (Default), Agentforce Service Agent Builder/User, Einstein Prompt Templates licences; `BotDefinition` and `GenAiPlannerDefinition` objects exist; an `EinsteinServiceAgent User` already exists | LAMS-085 – LAMS-087 (BR-75 – BR-77) |
+| Data Cloud | **Yes, licensed, not provisioned** | `Data Cloud` (`GenieDataPlatformStarterPsl`) licence, 2 assigned; Data Cloud entitlements present (3 connections, 45,000 profiles). But `CustomerDataPlatformSettings.enableCustomerDataPlatform = false`, no `DataSpace` object and no `__dlm` objects: Data Cloud Setup has not been run | LAMS-088, LAMS-089 (BR-78) |
+| Change Data Capture | **Yes** | 169 `*ChangeEvent` entities available. Developer Edition allows 5 selected entities (Salesforce Help) | LAMS-014 |
+| Classic encryption | **Yes** | Dry-run deploy of a test object with a `Text (Encrypted)` field succeeded; nothing was saved | LAMS-012 (BR-72) |
+| Marketing User | **Yes** | `User.UserPermissionsMarketingUser` field exists | LAMS-029, M14 (BR-88) |
+| Einstein Bots (classic) | No (off) | `BotSettings.enableBots = false`. Not needed; LAMS uses Agentforce agents | — |
 
-A Platform licence has no Lead, Campaign or Case access. The user plan that fits is in BRD §19 (licence plan): the developer admin acts as Credit Head, Loan Officer 1 and Operations Officer 1 get the two full licences, and the Credit Manager, Loan Officer 2 and Operations Officer 2 use Platform licences.
+## 3. Licences and limits
 
-## Limits
+### User licences
 
-| Limit | Value | How we live with it |
-| --- | --- | --- |
-| Data storage | 5 MB (about 2,500 records) | Keep demo data small; prefer short-tenure demo loans (a 30-year loan is 360 EMI rows); delete test data after demos |
-| File storage | 20 MB | Small sample documents only (under 1 MB each) |
-| Single emails per day | 15 | Email deliverability stays "System email only" until notifications are tested; Apex tests never send email |
-| Daily API requests | 15,000 | Enough for CI and Postman runs |
-| Daily async Apex executions | 250,000 | Enough |
-| Hourly published platform events | 50,000 | Enough |
+| Licence | Total | Used | Free | LAMS plan |
+| --- | --- | --- | --- | --- |
+| Salesforce | 4 | 2 (developer admin, "OrgFarm EPIC" admin) | 2 | Admin acts as Credit Head; Loan Officer 1 and Operations Officer 1 take the 2 free licences |
+| Salesforce Platform | 6 | 0 | 6 | Credit Manager, Loan Officer 2, Operations Officer 2 (no Lead, Campaign or Case access) |
+| Salesforce Integration | 1 | 0 | 1 | 1 Integration User (LAMS-068) |
+| Customer Community Login | 5 | 0 | 5 | 2 portal borrowers (LAMS-029) |
 
-## Gaps and fallbacks
+A Platform licence has no Lead, Campaign or Case access. The full user plan is in BRD §19 (licence plan).
+
+### Limits
+
+| Limit | Value in `Lams` | LAMS needs | OK? |
+| --- | --- | --- | --- |
+| Data storage | 5 MB (about 2,500 records at ~2 KB each) | Seed and demo data only; NFR-01 volumes proven in Apex tests | Yes, if demo data stays small |
+| File storage | 20 MB | Small sample documents (under 1 MB each) | Yes |
+| Dynamic dashboards | 3 (Developer Edition, Salesforce Help; not readable via API) | 2 (LAMS-081, LAMS-082) | Yes |
+| Flow Orchestration runs | 600 per year | A few dozen demo runs | Yes |
+| Messaging conversations | **10 in total (once, not per month)** | Borrower Assistant demo conversations | **Tight**, see gaps |
+| Einstein / Agentforce requests | Not exposed via API; check Setup → *Digital Wallet* before demos | Demo conversations | Check before LAMS-085 |
+| Data Cloud | 3 connections, 45,000 profiles, 20,000 segment publishes | 1 connection (CRM), a few hundred profiles, 1 refresh per day | Yes |
+| Daily API requests | 15,000 per 24 h (450,000 per month) | CI deploys, Postman runs, mock callouts | Yes |
+| Single emails per day | 15 (mass email 10) | Notification tests | Tight, see gaps |
+| Daily async Apex executions | 250,000 | Batches, queueables | Yes |
+| Hourly published platform events | 50,000 (10,000 delivered per day) | `Loan_Event__e` traffic | Yes |
+| Permission sets | 1,500 (1,494 free) | 8 + groups | Yes |
+| Org expiry | None (`TrialExpirationDate` is null) | Must survive the whole build | Yes. Inactive Developer Edition orgs can be locked, so log in at least monthly |
+
+## 4. Gaps and fallbacks
 
 | Gap | Fallback |
 | --- | --- |
-| Only 2 free full licences | Licence plan in BRD §19; security tests run as non-admin users |
+| Only 2 free full Salesforce licences | Licence plan in BRD §19; security tests run as non-admin users |
 | Credit Manager cannot see Cases (Platform licence) | Dispute cases route to the Credit Head (admin) in this org |
-| 5 MB data storage | Volumes (NFR-01) are proven in Apex tests, not with stored data |
-| 15 emails a day | Test notifications in small batches |
+| 5 MB data storage | Volumes (NFR-01) are proven in Apex tests, not with stored data; short-tenure demo loans; delete test data after demos |
+| 15 single emails a day | Email deliverability stays "System email only" until notifications are tested; Apex tests never send email; test in small batches to your own inbox |
+| Experience Cloud not enabled yet | Enable Digital Experiences in LAMS-005 (planned, not a real gap) |
+| **Data Cloud licensed but not provisioned** | Run Setup → *Data Cloud Setup* → *Get Started* well before M12 (provisioning can take an hour or more). If it fails, keep the Data Cloud toggle off and document the design in the README (BRD risk table) |
+| **Messaging: 10 conversations in total** | Test the Borrower Assistant in Agent Builder / preview first; use real portal Messaging conversations only for the final demo recording (LAMS-087, LAMS-093) |
+| CDC: 5 selected entities in Developer Edition | LAMS-014 selects only the entities the design needs (Loan__c, Loan_Application__c, Payment__c); stay at or under 5 |
+| Agentforce request credits not visible via API | Check Setup → *Digital Wallet* before LAMS-085 and before each demo |
+
+## 5. Manual steps
+
+_Empty for now. Later items (LAMS-005, LAMS-006) append the clicks that cannot be deployed from source._
