@@ -14,7 +14,7 @@ Tick items here; the linked file says what to build.
 - [x] [LAMS-002](002-sign-up-for-the-developer-edition-with.md) · Sign up for the Developer Edition with Agentforce and Data Cloud; confirm Experience Cloud, Orchestration, Messaging; record limits in `ORG_NOTES.md` · `S` — done 2026-11-23
 - [x] [LAMS-003](003-authorise-the-org-in-the-cli-set-default-org.md) · Authorise the org in the CLI; set default org and API version · `S` — done 2026-11-23
 - [x] ~~[LAMS-004](004-github-action-validate-only-deploy.md) · GitHub Action: validate-only deploy + RunLocalTests on every push (org auth URL as a repo secret) · `M`~~ — dropped 2026-11-24: not needed for a working project; errors are caught when deploying each item from the CLI. The finished workflow is kept in [ci-validate.yml](ci-validate.yml); to revive, copy it to `.github/workflows/validate.yml` and add the `SFDX_AUTH_URL` secret
-- [ ] [LAMS-005](005-enable-digital-experiences-translation.md) · Enable Digital Experiences, Translation Workbench (Hindi), Business Hours "LAMS IST" · `S`
+- [ ] [LAMS-005](005-enable-digital-experiences-translation.md) · Enable Digital Experiences, Translation Workbench (Hindi), Business Hours "LAMS IST" · `S` **(in progress)**
 - [ ] [LAMS-006](006-create-public-mock-endpoints-beeceptor-postman.md) · Create public mock endpoints (Beeceptor/Postman) with success and failure responses · `M`
 
 ## Milestone exit checklist

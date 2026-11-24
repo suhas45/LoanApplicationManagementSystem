@@ -19,7 +19,7 @@ Facts about the development org. First checked on 2026-11-21; completed for LAMS
 | CLI install | Windows installer at `C:\Program Files\sf` (self-updates into `%LOCALAPPDATA%\sf\client`). Update with `sf update`, **not** `npm install -g`; an npm copy would sit later on PATH and never be used |
 | Org default time zone / locale | America/Los_Angeles, en_US. **Change to Asia/Kolkata, English (India), INR** (LAMS-005) |
 | Developer user time zone / locale | Asia/Kolkata, en_IN |
-| Business hours | Only `Default` exists; "LAMS IST" is created in LAMS-005 |
+| Business hours | `Default` (24 h, America/Los_Angeles, org default) and **`LAMS IST`** (Asia/Kolkata, Mon–Sat 09:30–18:00, Sunday closed, not default), in source since LAMS-005 |
 | Person Accounts | Not enabled, and will not be (BRD Appendix D1) |
 
 Other orgs authorised on this machine (inkarp-DEV, inkarp-SIT, inkarp-UAT) are client sandboxes. **Never** pass `--target-org` with one of them from this project.
@@ -28,7 +28,7 @@ Other orgs authorised on this machine (inkarp-DEV, inkarp-SIT, inkarp-UAT) are c
 
 | Feature | Present? | Evidence (2026-11-23) | Needed by |
 | --- | --- | --- | --- |
-| Experience Cloud | **Yes, licensed, not enabled** | 5 Customer Community Login licences; `CommunitiesSettings.enableNetworksEnabled = false`; no `Network` object yet. Enabled in LAMS-005 | M10 portal (BR-59 – BR-61) |
+| Experience Cloud | **Yes, enabled 2026-11-24** | 5 Customer Community Login licences; `CommunitiesSettings.enableNetworksEnabled = true` deployed in LAMS-005 (cannot be turned off); `Network` object now exists. No site yet (LAMS-074) | M10 portal (BR-59 – BR-61) |
 | Flow Orchestration | **Yes** | `FlowOrchestrationInstance` / `FlowOrchestrationWorkItem` objects exist; flow `ProcessType` offers `Orchestrator`; entitlement *Maximum Orchestration Runs* = 600 per year | LAMS-050 (BR-20) |
 | Messaging for In-App and Web | **Yes (capped)** | `MessagingChannel`, `MessagingSession`, `EmbeddedServiceDetail` objects exist; Enhanced Chat User (11) and Messaging User (6) licences; entitlement *Maximum Total Conversations for Messaging* = **10, once** | LAMS-087 Borrower Assistant |
 | Agentforce | **Yes** | `EinsteinGptSettings.enableEinsteinGptPlatform = true`; Agentforce (Default), Agentforce Service Agent Builder/User, Einstein Prompt Templates licences; `BotDefinition` and `GenAiPlannerDefinition` objects exist; an `EinsteinServiceAgent User` already exists | LAMS-085 – LAMS-087 (BR-75 – BR-77) |
@@ -77,7 +77,6 @@ A Platform licence has no Lead, Campaign or Case access. The full user plan is i
 | Credit Manager cannot see Cases (Platform licence) | Dispute cases route to the Credit Head (admin) in this org |
 | 5 MB data storage | Volumes (NFR-01) are proven in Apex tests, not with stored data; short-tenure demo loans; delete test data after demos |
 | 15 single emails a day | Email deliverability stays "System email only" until notifications are tested; Apex tests never send email; test in small batches to your own inbox |
-| Experience Cloud not enabled yet | Enable Digital Experiences in LAMS-005 (planned, not a real gap) |
 | **Data Cloud licensed but not provisioned** | Run Setup → *Data Cloud Setup* → *Get Started* well before M12 (provisioning can take an hour or more). If it fails, keep the Data Cloud toggle off and document the design in the README (BRD risk table) |
 | **Messaging: 10 conversations in total** | Test the Borrower Assistant in Agent Builder / preview first; use real portal Messaging conversations only for the final demo recording (LAMS-087, LAMS-093) |
 | CDC: 5 selected entities in Developer Edition | LAMS-014 selects only the entities the design needs (Loan__c, Loan_Application__c, Payment__c); stay at or under 5 |
@@ -85,4 +84,12 @@ A Platform licence has no Lead, Campaign or Case access. The full user plan is i
 
 ## 5. Manual steps
 
-_Empty for now. Later items (LAMS-005, LAMS-006) append the clicks that cannot be deployed from source._
+Clicks that cannot be deployed from source. Repeat them in any new org, after deploying `force-app`.
+
+| # | Item | Where | Value |
+| --- | --- | --- | --- |
+| 1 | LAMS-005 | Setup → Company Information → Edit | Default Locale **English (India)**; Default Language English; Default Time Zone **(GMT+05:30) India Standard Time (Asia/Kolkata)**; Currency Locale **English (India) – INR**. Multi-currency stays off |
+| 2 | LAMS-005 | Setup → Users → your user | Locale English (India), Time Zone Asia/Kolkata (already set in `Lams`) |
+| 3 | LAMS-005 | Setup → Translation Language Settings → Add | Language **Hindi**, Active checked, Translators: your admin user. Needs `Language.settings` deployed first (end-user and platform languages on) |
+
+Deployed from source instead of clicked (LAMS-005): Digital Experiences on (`Communities.settings`), end-user and platform-only languages on (`Language.settings`), Business Hours `LAMS IST` (`BusinessHours.settings`).
