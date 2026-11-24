@@ -6,7 +6,7 @@ The build of the [BRD](../BRD/LAMS_BRD.md) is divided into 14 milestones and 100
 
 | Milestone | Work items | Estimate | Exit criteria |
 | --- | --- | --- | --- |
-| [M01 – Org and repo](M01-org-and-repo/README.md) | 001 – 006 | ≈ 4h | A push to `main` passes CI |
+| [M01 – Org and repo](M01-org-and-repo/README.md) | 001 – 006 | ≈ 4h | Code is pushed to `main` on GitHub |
 | [M02 – Data model](M02-data-model/README.md) | 094, 007 – 016 | ≈ 13h | Seed data loads; AC-09 EMI checks by hand |
 | [M03 – Configuration](M03-configuration/README.md) | 017 – 021 | ≈ 6h | Toggles readable from Apex and Flow |
 | [M04 – Security](M04-security/README.md) | 022 – 030 | ≈ 10h | AC-14 |
@@ -67,7 +67,7 @@ Rules:
 1. Mark it **(in progress)**. Create a branch: `feat/LAMS-041-credit-bureau` (or `fix/…`, `chore/…`).
 2. Follow the work item file. Build in the org and retrieve (`sf project retrieve start`), or write source and deploy.
 3. Commit with the ID: `feat(apex): CreditBureauService with retry [LAMS-041]`.
-4. Run the self-review checklist below. Push; CI validates the deploy and runs local tests. Fix until green.
+4. Run the self-review checklist below. Deploy to `Lams` and run local tests from the CLI (`sf project deploy start`, `sf apex run test --test-level RunLocalTests`). Fix until clean, then push. (No CI: LAMS-004 was dropped.)
 5. Merge to `main`.
 6. Tick the box with the date and commit: `chore(backlog): done LAMS-041`.
 
@@ -83,7 +83,7 @@ A work item is done when:
 - [ ] Metadata is in source control and deploys cleanly
 - [ ] Apex: tests in the same branch, ≥ 90% coverage for the class, bulk (200 records) and toggle on/off cases
 - [ ] No hardcoded IDs, endpoints, thresholds or user-facing text (custom labels used)
-- [ ] CI green
+- [ ] Deploys to `Lams` and local tests pass from the CLI
 - [ ] BRD updated if the design changed
 - [ ] A screenshot in `docs/BRD/images/` for anything visible, linked from the devlog
 
