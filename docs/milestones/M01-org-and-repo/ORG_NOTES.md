@@ -17,7 +17,7 @@ Facts about the development org. First checked on 2026-11-21; completed for LAMS
 | API version | 68.0 in the org (`sf org display`) = `sourceApiVersion` in `sfdx-project.json`. `org-api-version` is not set and not needed: the CLI uses the org's version |
 | CLI version | `@salesforce/cli/2.159.7` (Node 26.13.0), updated 2026-11-23 with `sf update stable` |
 | CLI install | Windows installer at `C:\Program Files\sf` (self-updates into `%LOCALAPPDATA%\sf\client`). Update with `sf update`, **not** `npm install -g`; an npm copy would sit later on PATH and never be used |
-| Org default time zone / locale | America/Los_Angeles, en_US. **Change to Asia/Kolkata, English (India), INR** (LAMS-005) |
+| Org default time zone / locale | Asia/Kolkata, en_IN, INR (changed by hand in LAMS-005, checked 2026-11-27). Was America/Los_Angeles, en_US |
 | Developer user time zone / locale | Asia/Kolkata, en_IN |
 | Business hours | `Default` (24 h, America/Los_Angeles, org default) and **`LAMS IST`** (Asia/Kolkata, Mon–Sat 09:30–18:00, Sunday closed, not default), in source since LAMS-005 |
 | Person Accounts | Not enabled, and will not be (BRD Appendix D1) |

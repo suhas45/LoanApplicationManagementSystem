@@ -91,6 +91,6 @@ These go in the *Manual steps* section of `ORG_NOTES.md`, so a new org can be re
 - [x] Digital Experiences enabled (`Network` object exists)
 - [x] Business Hours `LAMS IST` active, Mon–Sat 09:30–18:00, Sunday closed, in `force-app`
 - [x] Manual steps listed in `ORG_NOTES.md`
-- [ ] Company Information: time zone Asia/Kolkata, locale English (India), INR (manual)
-- [ ] Hindi active in Translation Language Settings with you as translator (manual)
-- [ ] A test Account's Annual Revenue shows `₹`
+- [x] Company Information: time zone Asia/Kolkata, locale English (India), INR (manual)
+- [x] Hindi active in Translation Language Settings with you as translator (manual)
+- [x] A test Account's Annual Revenue shows `₹`
